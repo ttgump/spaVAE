@@ -648,7 +648,7 @@ class SPAMULTIVAE(nn.Module):
             KL_term_val = KL_term_val/num
             noise_reg_val = noise_reg_val/num
 
-            print('Training epoch {}, ELBO:{:.8f}, Gene NB loss:{:.8f}, Protein Mixture NB loss:{:.8f}, Protein background KL:{:.8f}, KLD loss:{:.8f}, noise regularization:{:8f}'.format(epoch+1, elbo_val, gene_recon_loss_val, protein_recon_loss_val, protein_back_KL_val, KL_term_val, noise_reg_val))
+            print('Training epoch {}, ELBO:{:.8f}, Gene NB loss:{:.8f}, Protein NB mixture loss:{:.8f}, Protein background KL:{:.8f}, KLD loss:{:.8f}, noise regularization:{:8f}'.format(epoch+1, elbo_val, gene_recon_loss_val, protein_recon_loss_val, protein_back_KL_val, KL_term_val, noise_reg_val))
             if print_kernel_scale:
                 print('Current kernel scale', torch.clamp(F.softplus(self.svgp.kernel.scale), min=1e-10, max=1e4).data)
 

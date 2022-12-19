@@ -20,7 +20,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--data_file', default='Multiomics_DBiT_seq_0713_data.h5')
-    parser.add_argument('--select_genes', default=2000, type=int)
+    parser.add_argument('--select_genes', default=0, type=int)
     parser.add_argument('--select_proteins', default=0, type=int)
     parser.add_argument('--batch_size', default=512, type=int)
     parser.add_argument('--maxiter', default=2000, type=int)
