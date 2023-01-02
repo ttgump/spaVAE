@@ -1,5 +1,5 @@
 # spaVAE
-SpaVAE and spaMultiVAE are dependency-aware deep generative models for multitasking analysis of spatial genomics data. The spaVAE model optimizes the parameters of a deep neural network to approximate the distributions that underlie the SRT data and introduces a Gaussian process (GP) prior to explicitly capture spatial correlations among spots. As a result, we can use spaVAE for various analyses, including dimensionality reduction, visualization, clustering, batch integration, denoising, differential expression, spatial imputation and  resolution enhancement. SpaMultiVAE is based on spaVAE, which characterizes spatial multi-omics data that profiles gene expression and surface protein intensity simultaneously.
+SpaVAE and spaMultiVAE are dependency-aware deep generative models for multitasking analysis of spatial genomics data. The spaVAE model optimizes the parameters of a deep neural network to approximate the distributions that underlie the SRT data and introduces a Gaussian process (GP) prior to explicitly capture spatial correlations among spots. As a result, we can use spaVAE for various analyses, including dimensionality reduction, visualization, clustering, batch integration, denoising, differential expression, spatial imputation, and  resolution enhancement. SpaMultiVAE is based on spaVAE, which characterizes spatial multi-omics data that profiles gene expression and surface protein intensity simultaneously.
 
 Diagram of spaVAE and spaMultiVAE networks:
 ![alt text](https://github.com/ttgump/spaVAE/blob/main/network.png?raw=True)
@@ -48,3 +48,7 @@ python run_spaVAE.py --data_file Mouse_hippocampus.h5 --grid_inducing_points Fal
 --final_latent_file: file name to output final latent representations, default = final_latent.txt.<br/>
 --denoised_counts_file: file name to output denoised counts, default = denoised_mean.txt.<br/>
 --device: pytorch device, default = cuda.<br/>
+
+**Datasets used in the study can be found**
+
+https://figshare.com/articles/dataset/Spatial_genomics_datasets/21623148

@@ -29,7 +29,7 @@ if __name__ == "__main__":
     parser.add_argument('--patience', default=100, type=int)
     parser.add_argument('--lr', default=1e-3, type=float)
     parser.add_argument('--weight_decay', default=1e-2, type=float)
-    parser.add_argument('--noise', default=1, type=float)
+    parser.add_argument('--noise', default=0, type=float)
     parser.add_argument('--dropoutE', default=0, type=float,
                         help='dropout probability for encoder')
     parser.add_argument('--dropoutD', default=0, type=float,
