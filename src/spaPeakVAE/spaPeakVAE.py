@@ -267,7 +267,7 @@ class SPAPEAKVAE(nn.Module):
         return recon_samples.numpy()
 
 
-    def batching_predict_samples(self, X_test, X_train, Y_train, n_samples=1, batch_size=512, binary=False):
+    def batching_predict_samples(self, X_test, X_train, Y_train, n_samples=1, batch_size=512):
         """
         Impute latent representations and denoised counts on unseen testing locations.
 
@@ -340,14 +340,11 @@ class SPAPEAKVAE(nn.Module):
         latent_samples = torch.cat(latent_samples, dim=0)
         mean_samples = torch.cat(mean_samples, dim=0)
 
-        if binary:
-            mean_samples = (mean_samples.T > Y.mean(1).T).T & (mean_samples>Y.mean(0))
-
         return latent_samples.numpy(), mean_samples.numpy()
 
 
     def differential_expression(self, group1_idx, group2_idx, num_denoise_samples=10000, batch_size=512, pos=None, counts=None, 
-            peak_name=None, n_samples=1, estimate_pseudocount=True):
+            peak_name=None, n_samples=1, use_pseudocount=True):
         """
         Differential expression analysis.
 
@@ -371,29 +368,10 @@ class SPAPEAKVAE(nn.Module):
         group1_denoised_counts = self.batching_denoise_counts(X=pos[group1_idx_sampling], Y=counts[group1_idx_sampling], batch_size=batch_size, n_samples=n_samples)
         group2_denoised_counts = self.batching_denoise_counts(X=pos[group2_idx_sampling], Y=counts[group2_idx_sampling], batch_size=batch_size, n_samples=n_samples)
 
-        if estimate_pseudocount:
-            group1_where_zero = np.max(counts[group1_idx], axis=0) == 0
-            group2_where_zero = np.max(counts[group2_idx], axis=0) == 0
-            group1_max_denoised_counts = np.max(group1_denoised_counts, axis=0)
-            group2_max_denoised_counts = np.max(group2_denoised_counts, axis=0)
-
-            if group1_where_zero.sum() >= 1:
-                group1_atefact_count = group1_max_denoised_counts[group1_where_zero]
-                group1_eps = np.quantile(group1_atefact_count, q=0.9)
-            else:
-                group1_eps = 0.01
-            if group2_where_zero.sum() >= 1:
-                group2_atefact_count = group2_max_denoised_counts[group2_where_zero]
-                group2_eps = np.quantile(group2_atefact_count, q=0.9)
-            else:
-                group2_eps = 0.01
-
-            eps = np.maximum(group1_eps, group2_eps)
-            print("Estimated pseudocounts", eps)
-        else:
+        if use_pseudocount:
             eps = 0.01
-
-        eps = np.min([eps, 0.01])
+        else:
+            eps = 1e-10
 
         group1_denoised_mean = np.mean(group1_denoised_counts, axis=0)
         group2_denoised_mean = np.mean(group2_denoised_counts, axis=0)
