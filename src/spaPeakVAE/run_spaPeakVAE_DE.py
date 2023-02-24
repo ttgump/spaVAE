@@ -42,6 +42,7 @@ if __name__ == "__main__":
     parser.add_argument('--inducing_point_steps', default=19, type=int)
     parser.add_argument('--inducing_point_nums', default=None, type=int)
     parser.add_argument('--fixed_gp_params', default=False, type=bool)
+    parser.add_argument('--loc_range', default=20., type=float)
     parser.add_argument('--kernel_scale', default=20., type=float)
     parser.add_argument('--model_file', default='model.pt')
     parser.add_argument('--final_latent_file', default='final_latent.txt')
@@ -60,7 +61,7 @@ if __name__ == "__main__":
     labels = np.loadtxt("annotated_labels.txt", dtype='str', delimiter="\n").astype('U30')
 
     scaler = MinMaxScaler()
-    loc = scaler.fit_transform(loc) * 20.
+    loc = scaler.fit_transform(loc) * args.loc_range
 
     print(x.shape)
     print(loc.shape)
@@ -70,7 +71,7 @@ if __name__ == "__main__":
     # Another way is k-means on the locations, argument "inducing_point_nums" controls number of inducing points
     if args.grid_inducing_points:
         eps = 1e-5
-        initial_inducing_points = np.mgrid[0:(1+eps):(1./args.inducing_point_steps), 0:(1+eps):(1./args.inducing_point_steps)].reshape(2, -1).T * 20.
+        initial_inducing_points = np.mgrid[0:(1+eps):(1./args.inducing_point_steps), 0:(1+eps):(1./args.inducing_point_steps)].reshape(2, -1).T * args.loc_range
         print(initial_inducing_points.shape)
     else:
         loc_kmeans = KMeans(n_clusters=args.inducing_point_nums, n_init=100).fit(loc)

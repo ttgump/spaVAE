@@ -42,6 +42,7 @@ if __name__ == "__main__":
     parser.add_argument('--fix_inducing_points', default=True, type=bool)
     parser.add_argument('--inducing_point_steps', default=15, type=int)
     parser.add_argument('--fixed_gp_params', default=False, type=bool)
+    parser.add_argument('--loc_range', default=20., type=float)
     parser.add_argument('--kernel_scale', default=20., type=float)
     parser.add_argument('--model_file', default='model.pt')
     parser.add_argument('--final_latent_file', default='final_latent.txt')
@@ -73,14 +74,14 @@ if __name__ == "__main__":
         np.savetxt("selected_proteins.txt", importantProteins, delimiter=",", fmt="%i")
 
     scaler = MinMaxScaler()
-    loc = scaler.fit_transform(loc) * 20.
+    loc = scaler.fit_transform(loc) * args.loc_range
 
     print(x1.shape)
     print(x2.shape)
     print(loc.shape)
 
     eps = 1e-5
-    initial_inducing_points = np.mgrid[0:(1+eps):(1./args.inducing_point_steps), 0:(1+eps):(1./args.inducing_point_steps)].reshape(2, -1).T * 20.
+    initial_inducing_points = np.mgrid[0:(1+eps):(1./args.inducing_point_steps), 0:(1+eps):(1./args.inducing_point_steps)].reshape(2, -1).T * args.loc_range
     print(initial_inducing_points.shape)
 
     adata1 = sc.AnnData(x1, dtype="float64")

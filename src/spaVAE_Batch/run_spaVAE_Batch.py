@@ -44,6 +44,7 @@ if __name__ == "__main__":
     parser.add_argument('--fix_inducing_points', default=True, type=bool)
     parser.add_argument('--inducing_point_steps', default=6, type=int)
     parser.add_argument('--fixed_gp_params', default=False, type=bool)
+    parser.add_argument('--loc_range', default=20., type=float)
     parser.add_argument('--kernel_scale', default=20., type=float)
     parser.add_argument('--allow_batch_kernel_scale', default=True, type=bool)
     parser.add_argument('--save_dir', default='ES_model/')
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     for i in range(n_batch):
         scaler = MinMaxScaler()
         b_loc = loc[batch[:,i]==1, :]
-        b_loc = scaler.fit_transform(b_loc) * 20.
+        b_loc = scaler.fit_transform(b_loc) * args.loc_range
         loc_scaled[batch[:,i]==1, :] = b_loc
     loc = loc_scaled
 
@@ -80,7 +81,7 @@ if __name__ == "__main__":
 
     # build inducing point matrix with batch index
     eps = 1e-5
-    initial_inducing_points_0_ = np.mgrid[0:(1+eps):(1./args.inducing_point_steps), 0:(1+eps):(1./args.inducing_point_steps)].reshape(2, -1).T * 20.
+    initial_inducing_points_0_ = np.mgrid[0:(1+eps):(1./args.inducing_point_steps), 0:(1+eps):(1./args.inducing_point_steps)].reshape(2, -1).T * args.loc_range
     initial_inducing_points_0 = np.tile(initial_inducing_points_0_, (n_batch, 1))
     initial_inducing_points_1 = []
     for i in range(n_batch):
