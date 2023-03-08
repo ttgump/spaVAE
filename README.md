@@ -43,6 +43,7 @@ python run_spaVAE.py --data_file Mouse_hippocampus.h5 --grid_inducing_points Fal
 --inducing_point_steps: if using 2D grid inducing points, set the number of 2D grid steps, default = None<br/>
 --inducing_point_nums: if using k-means centroids on positions, set the number of inducing points, default = None<br/>
 --fixed_gp_params: kernel scale is trainable or not, default = True<br/>
+--loc_range: range of locations scaling to. For example, loc_range = 20 means x and y locations will be scaled to the range 0 to 20, default = 20.<br/>
 --kernel_scale: initial kernel scale, default = 20.<br/>
 --model_file: file name to save weights of the model, default = model.pt<br/>
 --final_latent_file: file name to output final latent representations, default = final_latent.txt.<br/>
