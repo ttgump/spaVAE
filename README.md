@@ -27,6 +27,18 @@ For mouse hippocampus Slide-seq V2 dataset:
 python run_spaVAE.py --data_file Mouse_hippocampus.h5 --grid_inducing_points False --inducing_point_nums 300
 ```
 
+For ATAC-seq dataset of mouse embryonic (E15.5) brain tissues in the MISAR-seq dataset:
+
+```sh
+python run_spaPeakVAE.py --data_file MISAR_seq_mouse_E15_brain_ATAC_data.h5 --inducing_point_steps 19
+```
+
+For spatial multi-omics DBiT-seq data:
+
+```sh
+python run_spaMultiVAE.py --data_file Multiomics_DBiT_seq_0713_data.sh --inducing_point_steps 15
+```
+
 --data_file specifies the data file name, in the h5 file, spot-by-gene count matrix is stored in "X" and 2D location is stored in "pos".
 
 **Parameters**

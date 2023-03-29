@@ -23,7 +23,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='train',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--data_file', default='4_samples_union.h5')
+    parser.add_argument('--data_file', default='data.h5')
     parser.add_argument('--batch_size', default=512, type=int)
     parser.add_argument('--maxiter', default=2000, type=int)
     parser.add_argument('--patience', default=100, type=int)
