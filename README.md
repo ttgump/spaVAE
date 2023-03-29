@@ -1,7 +1,7 @@
 # spaVAE
 SpaVAE, spaPeakVAE and spaMultiVAE are dependency-aware deep generative models for multitasking analysis of spatial genomics data. The spaVAE model (**a**) optimizes the parameters of a deep neural network to approximate the distributions that underlie the SRT data and introduces a Gaussian process (GP) prior to explicitly capture spatial correlations among spots. As a result, we can use spaVAE for various analyses, including dimensionality reduction, visualization, clustering, batch integration, denoising, differential expression, spatial imputation, and  resolution enhancement. SpaPeakVAE (**a**) is a variant model of spaVAE, which characterizes spatial ATAC-seq binary data. SpaMultiVAE (**b**) is based on spaVAE, which characterizes spatial multi-omics data that profiles gene expression and surface protein intensity simultaneously. SpaLDVAE (**c**) is spaVAE with a linear decoder, and can be used for detecting spatial variable genes and peaks. 
 
-Diagram of spaVAE and spaMultiVAE networks:
+Diagram of spaVAE (**a**), spaPeakVAE (**a**), spaMultiVAE (**b**), and spaLDVAE (**c**) networks:
 ![alt text](https://github.com/ttgump/spaVAE/blob/main/network.png?raw=True)
 
 **Requirements**
