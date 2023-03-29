@@ -16,9 +16,16 @@ h5py: 3.6.0<br/>
 
 **Usage**
 
-python run_spaVAE.py --data_file HumanDLPFC_151673.h5 --noise 1 --inducing_point_steps 6
+For human DLPFC dataset:
 
+```sh
+python run_spaVAE.py --data_file HumanDLPFC_151673.h5 --noise 1 --inducing_point_steps 6
+```
+For mouse hippocampus Slide-seq V2 dataset:
+
+```sh
 python run_spaVAE.py --data_file Mouse_hippocampus.h5 --grid_inducing_points False --inducing_point_nums 300
+```
 
 --data_file specifies the data file name, in the h5 file, spot-by-gene count matrix is stored in "X" and 2D location is stored in "pos".
 
