@@ -39,7 +39,7 @@ if __name__ == "__main__":
     parser.add_argument('--fix_inducing_points', default=True, type=bool)
     parser.add_argument('--grid_inducing_points', default=True, type=bool, 
                         help='whether to generate grid inducing points or use k-means centroids on locations as inducing points')
-    parser.add_argument('--inducing_point_steps', default=19, type=int)
+    parser.add_argument('--inducing_point_steps', default=None, type=int)
     parser.add_argument('--inducing_point_nums', default=None, type=int)
     parser.add_argument('--fixed_gp_params', default=False, type=bool)
     parser.add_argument('--loc_range', default=20., type=float)

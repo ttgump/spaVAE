@@ -42,7 +42,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_samples', default=1, type=int)
     parser.add_argument('--shared_dispersion', default=False, type=bool)
     parser.add_argument('--fix_inducing_points', default=True, type=bool)
-    parser.add_argument('--inducing_point_steps', default=6, type=int)
+    parser.add_argument('--inducing_point_steps', default=None, type=int)
     parser.add_argument('--fixed_gp_params', default=False, type=bool)
     parser.add_argument('--loc_range', default=20., type=float)
     parser.add_argument('--kernel_scale', default=20., type=float)
