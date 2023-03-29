@@ -29,6 +29,7 @@ def preprocessing_atac(
 #    if not issparse(adata.X):
 #        adata.X = sp.sparse.csr_matrix(adata.X)
         
+    # binarize count matrix
     adata.X[adata.X>0] = 1
     
     if log: log.info('Filtering cells')
