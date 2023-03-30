@@ -12,12 +12,12 @@ Diagram of spaVAE (**a**), spaPeakVAE (**a**), spaMultiVAE (**b**), and spaLDVAE
 **Requirements**
 
 Python: 3.9.7<br/>
-PyTorch: 1.11.0<br/>
-Scanpy: 1.9.1<br/>
-Numpy: 1.21.5<br/>
-Scipy: 1.8.0<br/>
-Pandas: 1.4.2<br/>
-h5py: 3.6.0<br/>
+PyTorch: 1.11.0 (https://pytorch.org)<br/>
+Scanpy: 1.9.1 (https://scanpy.readthedocs.io/en/stable)<br/>
+Numpy: 1.21.5 (https://numpy.org)<br/>
+Scipy: 1.8.0 (https://scipy.org)<br/>
+Pandas: 1.4.2 (https://pandas.pydata.org)<br/>
+h5py: 3.6.0 (https://pypi.org/project/h5py)<br/>
 
 **Usage**
 
