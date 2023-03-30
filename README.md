@@ -50,7 +50,7 @@ python run_spaMultiVAE.py --data_file Multiomics_DBiT_seq_0713_data.sh --inducin
 
 --data_file: data file name.<br/>
 --select_genes: number of selected genes for embedding analysis, default = 0 means no filtering.<br/>
---batch_size: batch size, default = 512.<br/>
+--batch_size: mini-batch size, default = 512.<br/>
 --maxiter: number of max training iterations, default = 2000.<br/>
 --lr: learning rate, default = 1e-3.<br/>
 --weight_decay: weight decay coefficient, default = 1e-2.<br/>
@@ -61,12 +61,12 @@ python run_spaMultiVAE.py --data_file Multiomics_DBiT_seq_0713_data.sh --inducin
 --z_dim: size of bottleneck layer, default = 2.<br/>
 --decoder_layers: hidden layer sizes of decoder, default = [32].<br/>
 --beta: coefficient of the reconstruction loss, default = 20.<br/>
---num_samples: number of samplings of the posterior distribution of latent embedding, default = 1<br/>
---fix_inducing_points: fixed or trainable inducing points, default = True<br/>
---grid_inducing_points: whether to use 2D grid inducing points or k-means centroids on positions, default = True<br/>
---inducing_point_steps: if using 2D grid inducing points, set the number of 2D grid steps, default = None<br/>
---inducing_point_nums: if using k-means centroids on positions, set the number of inducing points, default = None<br/>
---fixed_gp_params: kernel scale is trainable or not, default = True<br/>
+--num_samples: number of samplings of the posterior distribution of latent embedding, default = 1.<br/>
+--fix_inducing_points: fixed or trainable inducing points, default = True.<br/>
+--grid_inducing_points: whether to use 2D grid inducing points or k-means centroids on positions, default = True.<br/>
+--inducing_point_steps: if using 2D grid inducing points, set the number of 2D grid steps, default = None.<br/>
+--inducing_point_nums: if using k-means centroids on positions, set the number of inducing points, default = None.<br/>
+--fixed_gp_params: kernel scale is trainable or not, default = False.<br/>
 --loc_range: positional locations will be scaled to the specified range. For example, loc_range = 20 means x and y locations will be scaled to the range 0 to 20, default = 20.<br/>
 --kernel_scale: initial kernel scale, default = 20.<br/>
 --model_file: file name to save weights of the model, default = model.pt<br/>
