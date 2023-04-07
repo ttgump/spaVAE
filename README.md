@@ -7,7 +7,7 @@ SpaVAE, spaPeakVAE, spaMultiVAE, and spaLDVAE are dependency-aware deep generati
 **spaLDVAE** is spaVAE with a linear decoder, which contains two latent embedding components, one follows GP prior and the other follows standard normal prior. The model can be used for detecting spatial variable genes and peaks. 
 
 Diagram of spaVAE (**a**), spaPeakVAE (**a**), spaMultiVAE (**b**), and spaLDVAE (**c**) networks:
-![alt text](https://github.com/ttgump/spaVAE/blob/main/network.png?raw=True)
+![Model architecture](network.svg)
 
 **Requirements**
 
