@@ -26,6 +26,13 @@ For human DLPFC dataset:
 ```sh
 python run_spaVAE.py --data_file HumanDLPFC_151673.h5 --noise 1 --inducing_point_steps 6
 ```
+
+For integrating 4 human DLPFC samples:
+
+```sh
+python run_spaVAE_Batch.py --data_file 151673_151674_151675151676_samples_union.h5 --noise 1 --inducing_point_steps 6
+```
+
 For mouse hippocampus Slide-seq V2 dataset:
 
 ```sh
