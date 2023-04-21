@@ -6,10 +6,21 @@ SpaVAE, spaPeakVAE, spaMultiVAE, and spaLDVAE are dependency-aware deep generati
 **spaMultiVAE** characterizes spatial multi-omics data, which profiles gene expression and surface protein intensity simultaneously. Besides the analyses aforementioned, spaMultiVAE uses a NB mixture decoder to denoise backgrounds in proteins.<br/>
 **spaLDVAE** is spaVAE with a linear decoder, which contains two latent embedding components, one follows GP prior and the other follows standard normal prior. The model can be used for detecting spatial variable genes and peaks. 
 
+## Table of contents
+- [Network diagram](#diagram)
+- [Requirements](#requirements)
+- [Usage](#usage)
+- [Parameters](#parameters)
+- [Datasets](#datasets)
+- [Reference](#reference)
+- [Contact](#contact)
+
+## <a name="diagram"></a>Network diagram
+
 Diagram of spaVAE (**a**), spaPeakVAE (**a**), spaMultiVAE (**b**), and spaLDVAE (**c**) networks:
 ![Model architecture](network.svg)
 
-**Requirements**
+## <a name="requirements"></a>Requirements
 
 Python: 3.9.7<br/>
 PyTorch: 1.11.0 (https://pytorch.org)<br/>
@@ -19,7 +30,7 @@ Scipy: 1.8.0 (https://scipy.org)<br/>
 Pandas: 1.4.2 (https://pandas.pydata.org)<br/>
 h5py: 3.6.0 (https://pypi.org/project/h5py)<br/>
 
-**Usage**
+## <a name="usage"></a>Usage
 
 For human DLPFC dataset:
 
@@ -53,7 +64,7 @@ python run_spaMultiVAE.py --data_file Multiomics_DBiT_seq_0713_data.sh --inducin
 
 --data_file specifies the data file name, in the h5 file. For SRT data, spot-by-gene count matrix is stored in "X" and 2D location is stored in "pos". For spatial ATAC-seq data, "X" represents spot-by-peak count matrix. For spatial multi-omics data, "X_gene" represents spot-by-gene count matrix, and "X_protein" represents spot-by-protein count matrix.
 
-**Parameters**
+## <a name="parameters"></a>Parameters
 
 --data_file: data file name.<br/>
 --select_genes: number of selected genes for embedding analysis, default = 0 means no filtering.<br/>
@@ -81,8 +92,14 @@ python run_spaMultiVAE.py --data_file Multiomics_DBiT_seq_0713_data.sh --inducin
 --denoised_counts_file: file name to output denoised counts, default = denoised_mean.txt.<br/>
 --device: pytorch device, default = cuda.<br/>
 
-**Datasets used in the study can be found**
+## <a name="datasets"></a>Datasets
+
+Datasets used in the study can be found
 
 https://figshare.com/articles/dataset/Spatial_genomics_datasets/21623148
 
-**Reference**
+## <a name="reference"></a>Reference
+
+## <a name="contact"></a>Contact
+
+Tian Tian tt72@njit.edu
