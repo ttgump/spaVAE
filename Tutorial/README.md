@@ -1,6 +1,6 @@
 # Tutorial folders
 
-These folders store tutorials to illustrate different functionalities of spaVAE packages.
+These folders store tutorials to illustrate different functionalities of spaVAE packages. Please note there maybe some format errors when displaying jupyter notebooks online, we recommend to read notebooks in Visual Studio Code.
 
 **Human_DLPFC**
 
