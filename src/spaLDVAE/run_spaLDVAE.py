@@ -101,7 +101,3 @@ if __name__ == "__main__":
 
     spatial_score = model.spatial_score(gene_name=gene_name)
     spatial_score.to_csv(args.spatial_score_file)
-
-
-    denoised_counts = model.batching_denoise_counts(X=loc, Y=adata.X, batch_size=args.batch_size, n_samples=25)
-    np.savetxt(args.denoised_counts_file, denoised_counts, delimiter=",")
