@@ -9,7 +9,6 @@ import h5py
 import scanpy as sc
 from preprocess import normalize
 
-import igraph
 
 # torch.manual_seed(42)
 
@@ -20,7 +19,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--data_file', default='anterior_section1.h5_anterior_section2.h5_posterior_section1.h5_posterior_section2.h5_union_all_sgene.h5')
-    parser.add_argument('--n_clusters', default=7, type=int)
     parser.add_argument('--batch_size', default=512, type=int)
     parser.add_argument('--maxiter', default=2000, type=int)
     parser.add_argument('--patience', default=100, type=int)
@@ -39,7 +37,6 @@ if __name__ == "__main__":
     parser.add_argument('--num_samples', default=1, type=int)
     parser.add_argument('--shared_dispersion', default=False, type=bool)
     parser.add_argument('--fix_inducing_points', default=True, type=bool)
-    parser.add_argument('--inducing_point_steps', default=6, type=int)
     parser.add_argument('--fixed_gp_params', default=False, type=bool)
     parser.add_argument('--loc_range', default=20., type=float)
     parser.add_argument('--kernel_scale', default=20., type=float)

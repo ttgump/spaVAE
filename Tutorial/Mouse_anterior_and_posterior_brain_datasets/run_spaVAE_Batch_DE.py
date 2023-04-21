@@ -9,7 +9,6 @@ import h5py
 import scanpy as sc
 from preprocess import normalize
 
-import igraph
 
 # torch.manual_seed(42)
 
@@ -45,7 +44,6 @@ if __name__ == "__main__":
     parser.add_argument('--loc_range', default=20., type=float)
     parser.add_argument('--kernel_scale', default=20., type=float)
     parser.add_argument('--allow_batch_kernel_scale', default=True, type=bool)
-    parser.add_argument('--save_dir', default='ES_model/')
     parser.add_argument('--model_file', default='model.pt')
     parser.add_argument('--final_latent_file', default='final_latent.txt')
     parser.add_argument('--denoised_counts_file', default='denoised_counts')
