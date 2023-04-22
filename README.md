@@ -1,4 +1,4 @@
-# spaVAE
+# Spatial dependency-aware deep generative models
 
 SpaVAE, spaPeakVAE, spaMultiVAE, and spaLDVAE are dependency-aware deep generative models for multitasking analysis of spatial genomics data. Different models are designed for different analytical tasks of spatial genomics data.<br/>
 **spaVAE** is a Gaussian process (GP) variational autoencoder (VAE) with a negative binomial (NB) model-based decoder. The model is for multitasking analysis of spatially resolved transcriptomics (SRT) data, including dimensionality reduction, visualization, clustering, batch integration, denoising, differential expression, spatial imputation, and  resolution enhancement.<br/>
