@@ -1,25 +1,25 @@
 # Source code folders
 
-**spaVAE**
+## spaVAE
 
 The spaVAE model for spatially resolved transcriptomics (SRT).
 
-**spaLDVAE**
+## spaLDVAE
 
-The spaLDVAE model for detecting spatial variable genes and peaks.
+The spaLDVAE (spaVAE with linear decoder) model for detecting spatial variable genes and peaks.
 
-**spaVAE_Batch**
+## spaVAE_Batch
 
 The spaVAE model for integrating batches of SRT data.
 
-**spaPeakVAE**
+## spaPeakVAE
 
-The spaPeakVAE model for spatially ATAC-seq data.
+The spaPeakVAE model for spatial ATAC-seq data.
 
-**spaMultiVAE**
+## spaMultiVAE
 
-The spaMultiVAE model for spatial multiomics data.
+The spaMultiVAE model for spatial multiomics data (transcriptomics and surface protein).
 
-**utilities**
+## utilities
 
-Source code for some utilities, including clustering refinement.
+Source code of some utilities, including clustering refinement.
