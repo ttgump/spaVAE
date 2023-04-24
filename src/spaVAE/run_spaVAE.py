@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     # setting the hyper parameters
     import argparse
-    parser = argparse.ArgumentParser(description='train',
+    parser = argparse.ArgumentParser(description='Spatial dependency-aware variational autoencoder',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--data_file', default='data.h5')
     parser.add_argument('--select_genes', default=0, type=int)

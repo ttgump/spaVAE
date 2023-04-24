@@ -343,10 +343,10 @@ class SPAPEAKVAE(nn.Module):
         return latent_samples.numpy(), mean_samples.numpy()
 
 
-    def differential_expression(self, group1_idx, group2_idx, num_denoise_samples=10000, batch_size=512, pos=None, counts=None, 
+    def differential_accessibility(self, group1_idx, group2_idx, num_denoise_samples=10000, batch_size=512, pos=None, counts=None, 
             peak_name=None, n_samples=1, use_pseudocount=True):
         """
-        Differential expression analysis.
+        Differential accessibility analysis.
 
         Parameters:
         -----------

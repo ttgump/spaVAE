@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     # setting the hyper parameters
     import argparse
-    parser = argparse.ArgumentParser(description='train',
+    parser = argparse.ArgumentParser(description='Differential accessibility analysis',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--data_file', default='data.h5')
     parser.add_argument('--batch_size', default=512, type=int)
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     layer_idx_1 = np.where(np.array(labels=="Forebrain", dtype=bool))[0]
     layer_idx_2 = np.where(np.array(labels=="Midbrain", dtype=bool))[0]
 
-    res_dat = model.differential_expression(group1_idx=layer_idx_1, group2_idx=layer_idx_2, num_denoise_samples=args.num_denoise_samples,
+    res_dat = model.differential_accessibility(group1_idx=layer_idx_1, group2_idx=layer_idx_2, num_denoise_samples=args.num_denoise_samples,
                         batch_size=args.batch_size, pos=loc, counts=adata.X, peak_name=peak_name)
 
     res_dat.to_csv("Forebrain_vs_Midbrain_LFC.txt")
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     layer_idx_1 = np.where(np.array(labels=="Forebrain", dtype=bool))[0]
     layer_idx_2 = np.where(np.array(labels=="Hindbrain", dtype=bool))[0]
 
-    res_dat = model.differential_expression(group1_idx=layer_idx_1, group2_idx=layer_idx_2, num_denoise_samples=args.num_denoise_samples,
+    res_dat = model.differential_accessibility(group1_idx=layer_idx_1, group2_idx=layer_idx_2, num_denoise_samples=args.num_denoise_samples,
                         batch_size=args.batch_size, pos=loc, counts=adata.X, peak_name=peak_name)
 
     res_dat.to_csv("Forebrain_vs_Hindbrain_LFC.txt")
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     layer_idx_1 = np.where(np.array(labels=="Midbrain", dtype=bool))[0]
     layer_idx_2 = np.where(np.array(labels=="Hindbrain", dtype=bool))[0]
 
-    res_dat = model.differential_expression(group1_idx=layer_idx_1, group2_idx=layer_idx_2, num_denoise_samples=args.num_denoise_samples,
+    res_dat = model.differential_accessibility(group1_idx=layer_idx_1, group2_idx=layer_idx_2, num_denoise_samples=args.num_denoise_samples,
                         batch_size=args.batch_size, pos=loc, counts=adata.X, peak_name=peak_name)
 
     res_dat.to_csv("Midbrain_vs_Hindbrain_LFC.txt")

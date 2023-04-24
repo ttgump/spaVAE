@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     # setting the hyper parameters
     import argparse
-    parser = argparse.ArgumentParser(description='train',
+    parser = argparse.ArgumentParser(description='Spatial dependency-aware variational autoencoder for integrating batches of data',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--data_file', default='data.h5')
     parser.add_argument('--batch_size', default=512, type=int)
