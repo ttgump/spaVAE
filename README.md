@@ -10,6 +10,7 @@ SpaVAE, spaPeakVAE, spaMultiVAE, and spaLDVAE are dependency-aware deep generati
 - [Network diagram](#diagram)
 - [Requirements](#requirements)
 - [Usage](#usage)
+- [API documents](#api)
 - [Parameters](#parameters)
 - [Datasets](#datasets)
 - [Reference](#reference)
@@ -63,6 +64,10 @@ python run_spaMultiVAE.py --data_file Multiomics_DBiT_seq_0713_data.sh --inducin
 ```
 
 --data_file specifies the data file name, in the h5 file. For SRT data, spot-by-gene count matrix is stored in "X" and 2D location is stored in "pos". For spatial ATAC-seq data, "X" represents spot-by-peak count matrix. For spatial multi-omics data, "X_gene" represents spot-by-gene count matrix, and "X_protein" represents spot-by-protein count matrix.
+
+## <a name="api"></a>API documents
+
+https://github.com/ttgump/spaVAE/wiki
 
 ## <a name="parameters"></a>Parameters
 **--data_file:** data file name.<br/>
