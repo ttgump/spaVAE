@@ -97,5 +97,5 @@ if __name__ == "__main__":
                 model_weights=args.model_file)
     print('Training time: %d seconds.' % int(time() - t0))
 
-    spatial_score = model.spatial_score(gene_name=peak_name)
+    spatial_score = model.spatial_score(peak_name=peak_name)
     spatial_score.to_csv(args.spatial_score_file)

@@ -126,7 +126,7 @@ class SPAPEAKLDVAE(nn.Module):
         return elbo, recon_loss, gp_KL_term, gaussian_KL_term, mean_samples, latent_samples
 
 
-    def spatial_score(self, gene_name=None):
+    def spatial_score(self, peak_name=None):
         self.eval()
 
         spatial_dep_score = self.decoder[:self.z_dim, :]
@@ -139,7 +139,7 @@ class SPAPEAKLDVAE(nn.Module):
         non_spatial_score = (spatial_ind_score / (spatial_dep_score+spatial_ind_score)).data.cpu().detach().numpy()
 
         res_dat = pd.DataFrame(data={'spatial_score': spatial_score, 'non_spatial_score': non_spatial_score}, 
-                        index=gene_name)
+                        index=peak_name)
             
         return res_dat
 
