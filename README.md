@@ -67,7 +67,7 @@ python run_spaMultiVAE.py --data_file Multiomics_DBiT_seq_0713_data.sh --inducin
 
 ## <a name="api"></a>API documents
 
-https://github.com/ttgump/spaVAE/wiki
+[API documents](https://github.com/ttgump/spaVAE/wiki)
 
 ## <a name="parameters"></a>Parameters
 **--data_file:** data file name.<br/>
