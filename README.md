@@ -71,7 +71,7 @@ https://github.com/ttgump/spaVAE/wiki
 
 ## <a name="parameters"></a>Parameters
 **--data_file:** data file name.<br/>
-**--select_genes:** number of selected genes for embedding analysis, default = 0 means no filtering.  It will use the mean-variance relationship to select informative genes.<br/>
+**--select_genes:** number of selected genes for analysis, default = 0 means no filtering.  It will use the mean-variance relationship to select informative genes.<br/>
 **--batch_size:** mini-batch size, default = 512.<br/>
 **--maxiter:** number of max training iterations, default = 2000.<br/>
 **--lr:** learning rate, default = 1e-3.<br/>
