@@ -12,7 +12,6 @@ from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 from torch.distributions.normal import Normal
 from torch.distributions import kl_divergence
 import numpy as np
-from scipy import stats
 import pandas as pd
 from SVGP import SVGP
 from VAE_utils import *

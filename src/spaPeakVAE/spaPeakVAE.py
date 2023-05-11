@@ -10,7 +10,6 @@ from torch.optim.lr_scheduler import *
 from torch.utils.data import DataLoader, TensorDataset
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 import numpy as np
-from scipy import stats
 import pandas as pd
 from SVGP import SVGP
 from VAE_utils import *
