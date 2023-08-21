@@ -35,19 +35,19 @@ h5py: 3.6.0 (https://pypi.org/project/h5py)<br/>
 For human DLPFC dataset:
 
 ```sh
-python run_spaVAE.py --data_file HumanDLPFC_151673.h5 --noise 1 --inducing_point_steps 6
+python run_spaVAE.py --data_file HumanDLPFC_151673.h5 --inducing_point_steps 6
 ```
 
 For integrating 4 human DLPFC samples:
 
 ```sh
-python run_spaVAE_Batch.py --data_file 151673_151674_151675151676_samples_union.h5 --noise 1 --inducing_point_steps 6
+python run_spaVAE_Batch.py --data_file 151673_151674_151675151676_samples_union.h5 --inducing_point_steps 6
 ```
 
 For mouse hippocampus Slide-seq V2 dataset:
 
 ```sh
-python run_spaVAE.py --data_file Mouse_hippocampus.h5 --grid_inducing_points False --inducing_point_nums 300
+python run_spaVAE.py --data_file Mouse_hippocampus.h5 --grid_inducing_points False --inducing_point_nums 400 --loc_range 40
 ```
 
 For spatial ATAC-seq dataset of mouse embryonic (E15.5) brain tissues in the MISAR-seq dataset:
@@ -56,10 +56,10 @@ For spatial ATAC-seq dataset of mouse embryonic (E15.5) brain tissues in the MIS
 python run_spaPeakVAE.py --data_file MISAR_seq_mouse_E15_brain_ATAC_data.h5 --inducing_point_steps 19
 ```
 
-For spatial multi-omics DBiT-seq data:
+For spatial multi-omics Spatial-ATAC-seq data:
 
 ```sh
-python run_spaMultiVAE.py --data_file Multiomics_DBiT_seq_0713_data.sh --inducing_point_steps 15
+python run_spaMultiVAE.py --data_file Multiomics_Spatial_ATAC_Human_tonsil_data.sh --inducing_point_steps 19
 ```
 
 --data_file specifies the data file name, in the h5 file. For SRT data, spot-by-gene count matrix is stored in "X" and 2D location is stored in "pos". For spatial ATAC-seq data, "X" represents spot-by-peak count matrix. For spatial multi-omics data, "X_gene" represents spot-by-gene count matrix, and "X_protein" represents spot-by-protein count matrix.
@@ -71,24 +71,30 @@ python run_spaMultiVAE.py --data_file Multiomics_DBiT_seq_0713_data.sh --inducin
 ## <a name="parameters"></a>Parameters
 **--data_file:** data file name.<br/>
 **--select_genes:** number of selected genes for analysis, default = 0 means no filtering.  It will use the mean-variance relationship to select informative genes.<br/>
-**--batch_size:** mini-batch size, default = 512.<br/>
-**--maxiter:** number of max training iterations, default = 2000.<br/>
-**--lr:** learning rate, default = 1e-3.<br/>
-**--weight_decay:** weight decay coefficient, default = 1e-2.<br/>
+**--batch_size:** mini-batch size, default = "auto", which means if sample size <= 1024 then batch size = 128, if 1024 < sample size <= 2048 then batch size = 256, if sample size > 2048 then batch size = 512.<br/>
+**--maxiter:** number of max training iterations, default = 5000.<br/>
+**--train_size:** proportion of training set, others will be validating set, default = 0.95.<br/>
+**--patience:** patience of early stopping when using validating set, default = 200.<br/>
+**--lr:** learning rate, default = 1e-3 for spaVAE and spaPeakVAE, and defualt = 5e-3 for spaMultiVAE.<br/>
+**--weight_decay:** weight decay coefficient, default = 1e-6.<br/>
 **--noise:** coefficient of random Gaussian noise for the encoder, default = 0.<br/>
 **--dropoutE:** dropout probability for encoder, default = 0.<br/>
 **--dropoutD:** dropout probability for decoder, default = 0.<br/>
-**--encoder_layers:** hidden layer sizes of encoder, default = [128, 64, 32].<br/>
-**--z_dim:** size of bottleneck layer, default = 2 for spaVAE and spaMultiVAE, and default = 5 for spaPeakVAE.<br/>
-**--decoder_layers:** hidden layer sizes of decoder, default = [32].<br/>
-**--beta:** coefficient of the reconstruction loss, default = 20.<br/>
+**--encoder_layers:** hidden layer sizes of encoder, default = [128, 64].<br/>
+**--GP_dim:** dimension of the latent Gaussian process embedding, default = 2 for spaVAE and spaMultiVAE, and default = 4 for spaPeakVAE.<br/>
+**--Normal_dim:** dimension of the latent standard Gaussian embedding, default = 8.<br/>
+**--decoder_layers:** hidden layer sizes of decoder, default = [128].<br/>
+**--init_beta:** initial coefficient of the KL loss, default = 10.<br/>
+**--min_beta:** minimal coefficient of the KL loss, default = 1.<br/>
+**--max_beta:** maximal coefficient of the KL loss, default = 25.<br/>
+**--KL_loss:** desired KL_divergence value (GP and standard normal combined), default = 0.025.<br/>
 **--num_samples:** number of samplings of the posterior distribution of latent embedding during training, default = 1.<br/>
 **--fix_inducing_points:** fixed or trainable inducing points, default = True, which means inducing points are fixed.<br/>
 **--grid_inducing_points:** whether to use 2D grid inducing points or k-means centroids of positions as inducing points, default = True. "True" for 2D grid, "False" for k-means centroids.<br/>
 **--inducing_point_steps:** if using 2D grid inducing points, set the number of 2D grid steps, default = None. Needed when grid_inducing_points = True.<br/>
 **--inducing_point_nums:** if using k-means centroids on positions, set the number of inducing points, default = None. Needed when grid_inducing_points = False.<br/>
 **--fixed_gp_params:** kernel scale is fixed or not, default = False, which means kernel scale is trainable.<br/>
-**--loc_range:** positional locations will be scaled to the specified range. For example, loc_range = 20 means x and y locations will be scaled to the range 0 to 20, default = 20.<br/>
+**--loc_range:** positional locations will be scaled to the specified range. For example, loc_range = 20 means x and y locations will be scaled to the range 0 to 20, default = 20. This value can be set larger if it isn't numerical stable during training.<br/>
 **--kernel_scale:** initial kernel scale, default = 20.<br/>
 **--model_file:** file name to save weights of the model, default = model.pt<br/>
 **--final_latent_file:** file name to output final latent representations, default = final_latent.txt.<br/>
