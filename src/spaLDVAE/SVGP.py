@@ -7,7 +7,7 @@ from torch.optim.lr_scheduler import *
 from torch.utils.data import DataLoader, TensorDataset
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 import numpy as np
-from kernel import EQKernel, CauchyKernel
+from kernel import MultiCauchyKernel, MultiEQKernel, MultiMaternKernel
 
 
 def _add_diagonal_jitter(matrix, jitter=1e-8):
@@ -16,7 +16,7 @@ def _add_diagonal_jitter(matrix, jitter=1e-8):
 
 
 class SVGP(nn.Module):
-    def __init__(self, fixed_inducing_points, initial_inducing_points, fixed_gp_params, kernel_scale, jitter, N_train, dtype, device):
+    def __init__(self, fixed_inducing_points, initial_inducing_points, dim, fixed_gp_params, kernel_scale, jitter, N_train, dtype, device):
         super(SVGP, self).__init__()
         self.N_train = N_train
         self.jitter = jitter
@@ -30,10 +30,9 @@ class SVGP(nn.Module):
             self.inducing_index_points = nn.Parameter(torch.tensor(initial_inducing_points, dtype=dtype).to(device), requires_grad=True)
 
         # length scale of the kernel
-#        self.kernel = EQKernel(scale=kernel_scale, fixed_scale=fixed_gp_params, dtype=dtype, device=device).to(device)
-        self.kernel = CauchyKernel(scale=kernel_scale, fixed_scale=fixed_gp_params, dtype=dtype, device=device).to(device)
+        self.kernel = MultiMaternKernel(scale=kernel_scale, fixed_scale=fixed_gp_params, dim=dim, dtype=dtype, device=device).to(device)
 
-    def kernel_matrix(self, x, y, x_inducing=True, y_inducing=True, diag_only=False):
+    def kernel_matrix(self, x, y, l, x_inducing=True, y_inducing=True, diag_only=False):
         """
         Computes GP kernel matrix K(x,y).
         :param x:
@@ -46,12 +45,12 @@ class SVGP(nn.Module):
 
         if diag_only:
 #            matrix = torch.diagonal(self.kernel(x, y))
-            matrix = self.kernel.forward_diag(x, y)
+            matrix = self.kernel.forward_diag(x, y, l)
         else:
-            matrix = self.kernel(x, y)
+            matrix = self.kernel(x, y, l)
         return matrix
 
-    def variational_loss(self, x, y, noise, mu_hat, A_hat):
+    def variational_loss(self, x, y, noise, mu_hat, A_hat, l):
         """
         Computes L_H for the data in the current batch.
         :param x: auxiliary data for current batch (batch, 1 + 1 + M)
@@ -64,12 +63,12 @@ class SVGP(nn.Module):
         b = x.shape[0]
         m = self.inducing_index_points.shape[0]
 
-        K_mm = self.kernel_matrix(self.inducing_index_points, self.inducing_index_points) # (m,m)
+        K_mm = self.kernel_matrix(self.inducing_index_points, self.inducing_index_points, l) # (m,m)
         K_mm_inv = torch.linalg.inv(_add_diagonal_jitter(K_mm, self.jitter)) # (m,m)
 
-        K_nn = self.kernel_matrix(x, x, x_inducing=False, y_inducing=False, diag_only=True) # (b)
+        K_nn = self.kernel_matrix(x, x, l, x_inducing=False, y_inducing=False, diag_only=True) # (b)
 
-        K_nm = self.kernel_matrix(x, self.inducing_index_points, x_inducing=False)  # (b, m)
+        K_nm = self.kernel_matrix(x, self.inducing_index_points, l, x_inducing=False)  # (b, m)
         K_mn = torch.transpose(K_nm, 0, 1)
 
 #        S = A_hat
@@ -107,7 +106,7 @@ class SVGP(nn.Module):
 
         return L_3_sum_term, KL_term
 
-    def approximate_posterior_params(self, index_points_test, index_points_train=None, y=None, noise=None):
+    def approximate_posterior_params(self, index_points_test, index_points_train=None, y=None, noise=None, l=None):
         """
         Computes parameters of q_S.
         :param index_points_test: X_*
@@ -119,15 +118,15 @@ class SVGP(nn.Module):
         """
         b = index_points_train.shape[0]
 
-        K_mm = self.kernel_matrix(self.inducing_index_points, self.inducing_index_points) # (m,m)
+        K_mm = self.kernel_matrix(self.inducing_index_points, self.inducing_index_points, l) # (m,m)
         K_mm_inv = torch.linalg.inv(_add_diagonal_jitter(K_mm, self.jitter)) # (m,m)
 
-        K_xx = self.kernel_matrix(index_points_test, index_points_test, x_inducing=False,
+        K_xx = self.kernel_matrix(index_points_test, index_points_test, l, x_inducing=False,
                                   y_inducing=False, diag_only=True)  # (x)
-        K_xm = self.kernel_matrix(index_points_test, self.inducing_index_points, x_inducing=False)  # (x, m)
+        K_xm = self.kernel_matrix(index_points_test, self.inducing_index_points, l, x_inducing=False)  # (x, m)
         K_mx = torch.transpose(K_xm, 0, 1)  # (m, x)
 
-        K_nm = self.kernel_matrix(index_points_train, self.inducing_index_points, x_inducing=False)  # (N, m)
+        K_nm = self.kernel_matrix(index_points_train, self.inducing_index_points, l, x_inducing=False)  # (N, m)
         K_mn = torch.transpose(K_nm, 0, 1)  # (m, N)
 
         sigma_l = K_mm + (self.N_train / b) * torch.matmul(K_mn, K_nm / noise[:,None])

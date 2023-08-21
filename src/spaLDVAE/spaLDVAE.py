@@ -7,9 +7,10 @@ from torch.nn import Parameter
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.optim.lr_scheduler import *
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset, random_split
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 from torch.distributions.normal import Normal
+from torch.distributions.log_normal import LogNormal
 from torch.distributions import kl_divergence
 import numpy as np
 import pandas as pd
@@ -22,7 +23,7 @@ class SPALDVAE(nn.Module):
                     initial_inducing_points, fixed_gp_params, kernel_scale, N_train, beta, dtype, device):
         super(SPALDVAE, self).__init__()
         torch.set_default_dtype(dtype)
-        self.svgp = SVGP(fixed_inducing_points=fixed_inducing_points, initial_inducing_points=initial_inducing_points,
+        self.svgp = SVGP(fixed_inducing_points=fixed_inducing_points, initial_inducing_points=initial_inducing_points, dim=z_dim,
                 fixed_gp_params=fixed_gp_params, kernel_scale=kernel_scale, jitter=1e-8, N_train=N_train, dtype=dtype, device=device)
         self.input_dim = input_dim
         self.beta = beta        # beta controls the weight of reconstruction loss
@@ -33,6 +34,9 @@ class SPALDVAE(nn.Module):
         self.decoder = nn.Parameter(torch.empty((2*z_dim, input_dim)), requires_grad=True)
         nn.init.kaiming_normal_(self.decoder, a=math.sqrt(5))
         self.dec_disp = nn.Parameter(torch.randn(self.input_dim), requires_grad=True)       # trainable dispersion parameter for NB loss
+
+        self.prior_mu = nn.Parameter(torch.zeros(z_dim), requires_grad=True)
+        self.prior_var = nn.Parameter(torch.zeros(z_dim), requires_grad=True)
 
         self.NB_loss = NBLoss().to(self.device)
         self.to(device)
@@ -78,10 +82,10 @@ class SPALDVAE(nn.Module):
         gp_p_m, gp_p_v = [], []
         for l in range(self.z_dim):
             gp_p_m_l, gp_p_v_l, mu_hat_l, A_hat_l = self.svgp.approximate_posterior_params(x, x,
-                                                                    gp_mu[:, l], gp_var[:, l])
+                                                                    gp_mu[:, l], gp_var[:, l], l)
             inside_elbo_recon_l,  inside_elbo_kl_l = self.svgp.variational_loss(x=x, y=gp_mu[:, l],
                                                                     noise=gp_var[:, l], mu_hat=mu_hat_l,
-                                                                    A_hat=A_hat_l)
+                                                                    A_hat=A_hat_l, l=l)
 
             inside_elbo_recon.append(inside_elbo_recon_l)
             inside_elbo_kl.append(inside_elbo_kl_l)
@@ -103,54 +107,94 @@ class SPALDVAE(nn.Module):
         gp_ce_term = torch.sum(gp_ce_term)
 
         # KL term of GP prior
-        gp_KL_term = (gp_ce_term - inside_elbo) / self.z_dim
+        gp_KL_term = gp_ce_term - inside_elbo
 
         # KL term of Gaussian prior
-        gaussian_prior_dist = Normal(torch.zeros_like(gaussian_mu), torch.ones_like(gaussian_var))
+#        gaussian_prior_dist = Normal(torch.zeros_like(gaussian_mu), torch.ones_like(gaussian_var))
+        gaussian_prior_dist = Normal(self.prior_mu, torch.exp(self.prior_var))
         gaussian_post_dist = Normal(gaussian_mu, torch.sqrt(gaussian_var))
-        gaussian_KL_term = kl_divergence(gaussian_post_dist, gaussian_prior_dist).sum() / self.z_dim
+        gaussian_KL_term = kl_divergence(gaussian_post_dist, gaussian_prior_dist).sum()
 
         # SAMPLE
+        p_m = torch.cat((gp_p_m, gaussian_mu), dim=1)
+        p_v = torch.cat((gp_p_v, gaussian_var), dim=1)
+        latent_dist = LogNormal(p_m, torch.sqrt(p_v))
         latent_samples = []
         mean_samples = []
         disp_samples = []
         for _ in range(num_samples):
-            p_m = torch.cat((gp_p_m, gaussian_mu), dim=1)
-            p_v = torch.cat((gp_p_v, gaussian_var), dim=1)
-            latent_samples_ = p_m + torch.randn_like(p_m) * torch.sqrt(p_v)
+            latent_samples_ = latent_dist.rsample()
             latent_samples.append(latent_samples_)
 
         recon_loss = 0
         for f in latent_samples:
-            mean_samples_ = torch.matmul(torch.exp(f), torch.exp(self.decoder))
+            mean_samples_ = torch.matmul(f, torch.exp(self.decoder))
             disp_samples_ = (torch.exp(torch.clamp(self.dec_disp, -15., 15.))).unsqueeze(0)
 
             mean_samples.append(mean_samples_)
             disp_samples.append(disp_samples_)
             recon_loss += self.NB_loss(x=raw_y, mean=mean_samples_, disp=disp_samples_, scale_factor=size_factors)
-        recon_loss = recon_loss / num_samples / self.input_dim
+        recon_loss = recon_loss / num_samples
 
         # ELBO
-        elbo = self.beta * recon_loss + gp_KL_term + gaussian_KL_term
+        elbo = recon_loss + self.beta * (gp_KL_term + gaussian_KL_term)
 
         return elbo, recon_loss, gp_KL_term, gaussian_KL_term, mean_samples, disp_samples, latent_samples
 
 
-    def spatial_score(self, gene_name=None):
+    def spatial_score(self, X, Y, batch_size=256, n_samples=25, gene_name=None):
         self.eval()
 
-        spatial_dep_score = self.decoder[:self.z_dim, :]
-        spatial_dep_score = torch.sum(torch.exp(spatial_dep_score), dim=0)
+        X = torch.tensor(X, dtype=self.dtype)
+        Y = torch.tensor(Y, dtype=self.dtype)
 
-        spatial_ind_score = self.decoder[self.z_dim:, :]
-        spatial_ind_score = torch.sum(torch.exp(spatial_ind_score), dim=0)
+        latent_samples = []
 
-        spatial_score = (spatial_dep_score / (spatial_dep_score+spatial_ind_score)).data.cpu().detach().numpy()
-        non_spatial_score = (spatial_ind_score / (spatial_dep_score+spatial_ind_score)).data.cpu().detach().numpy()
+        num = X.shape[0]
+        num_batch = int(math.ceil(1.0*X.shape[0]/batch_size))
+        for batch_idx in range(num_batch):
+            xbatch = X[batch_idx*batch_size : min((batch_idx+1)*batch_size, num)].to(self.device)
+            ybatch = Y[batch_idx*batch_size : min((batch_idx+1)*batch_size, num)].to(self.device)
+
+            qnet_mu, qnet_var = self.encoder(ybatch)
+
+            gp_mu = qnet_mu[:, 0:self.z_dim]
+            gp_var = qnet_var[:, 0:self.z_dim]
+
+            gaussian_mu = qnet_mu[:, self.z_dim:]
+            gaussian_var = qnet_var[:, self.z_dim:]
+            gp_p_m, gp_p_v = [], []
+            for l in range(self.z_dim):
+                gp_p_m_l, gp_p_v_l, _, _ = self.svgp.approximate_posterior_params(xbatch, xbatch, gp_mu[:, l], gp_var[:, l], l)
+                gp_p_m.append(gp_p_m_l)
+                gp_p_v.append(gp_p_v_l)
+            gp_p_m = torch.stack(gp_p_m, dim=1)
+            gp_p_v = torch.stack(gp_p_v, dim=1)
+
+            p_m = torch.cat((gp_p_m, gaussian_mu), dim=1)
+            p_v = torch.cat((gp_p_v, gaussian_var), dim=1)
+            latent_dist = LogNormal(p_m, torch.sqrt(p_v))
+            latent_samples_ = []
+            for _ in range(n_samples):
+                latent_samples_.append(latent_dist.sample())
+            latent_samples_ = torch.stack(latent_samples_, dim=0)
+            latent_samples_ = torch.mean(latent_samples_, dim=0)
+            latent_samples.append(latent_samples_.data.cpu().detach())
+
+        latent_samples = torch.cat(latent_samples, dim=0)
+
+        diag_latent = torch.sum(latent_samples, dim=0)
+        decoder_weight = self.decoder.data.cpu().detach()
+        decoder_weight = torch.matmul(torch.diag(diag_latent), torch.exp(decoder_weight))
+
+        spatial_dep_score = torch.sum(decoder_weight[:self.z_dim, :], dim=0)
+        spatial_ind_score = torch.sum(decoder_weight[self.z_dim:, :], dim=0)
+        spatial_score = (spatial_dep_score / (spatial_dep_score+spatial_ind_score)).numpy()
+        non_spatial_score = (spatial_ind_score / (spatial_dep_score+spatial_ind_score)).numpy()
 
         res_dat = pd.DataFrame(data={'spatial_score': spatial_score, 'non_spatial_score': non_spatial_score}, 
                         index=gene_name)
-            
+
         return res_dat
 
 

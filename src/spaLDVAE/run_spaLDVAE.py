@@ -6,6 +6,7 @@ from spaLDVAE import SPALDVAE
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
+from sklearn.metrics import roc_auc_score, pairwise_distances
 import h5py
 import scanpy as sc
 from preprocess import normalize, geneSelection
@@ -21,15 +22,17 @@ if __name__ == "__main__":
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--data_file', default='data.h5')
     parser.add_argument('--select_genes', default=0, type=int)
-    parser.add_argument('--batch_size', default=512, type=int)
+    parser.add_argument('--batch_size', default=256, type=int)
     parser.add_argument('--maxiter', default=2000, type=int)
+    parser.add_argument('--train_size', default=1, type=float)
+    parser.add_argument('--patience', default=200, type=int)
     parser.add_argument('--lr', default=1e-3, type=float)
-    parser.add_argument('--weight_decay', default=1e-2, type=float)
+    parser.add_argument('--weight_decay', default=1e-6, type=float)
     parser.add_argument('--dropoutE', default=0, type=float,
                         help='dropout probability for encoder')
-    parser.add_argument('--encoder_layers', nargs="+", default=[128, 64, 32], type=int)
-    parser.add_argument('--z_dim', default=5, type=int,help='dimension of the latent embedding')
-    parser.add_argument('--beta', default=1, type=float,
+    parser.add_argument('--encoder_layers', nargs="+", default=[128, 64], type=int)
+    parser.add_argument('--z_dim', default=15, type=int,help='dimension of the latent embedding')
+    parser.add_argument('--beta', default=10, type=float,
                         help='coefficient of the reconstruction loss')
     parser.add_argument('--num_samples', default=1, type=int)
     parser.add_argument('--fix_inducing_points', default=True, type=bool)
@@ -40,6 +43,7 @@ if __name__ == "__main__":
     parser.add_argument('--fixed_gp_params', default=False, type=bool)
     parser.add_argument('--loc_range', default=20., type=float)
     parser.add_argument('--kernel_scale', default=20., type=float)
+    parser.add_argument('--permutate', default=0, type=int)
     parser.add_argument('--model_file', default='model.pt')
     parser.add_argument('--spatial_score_file', default='spatial_score.txt')
     parser.add_argument('--device', default='cuda')
@@ -79,6 +83,9 @@ if __name__ == "__main__":
         initial_inducing_points = loc_kmeans.cluster_centers_
 
     adata = sc.AnnData(x, dtype="float64")
+    adata.var["name"] = gene_name
+    sc.pp.filter_genes(adata, min_cells=100)
+    gene_name = adata.var["name"].values.astype('U26')
 
     adata = normalize(adata,
                       size_factors=True,
@@ -92,12 +99,36 @@ if __name__ == "__main__":
 
     print(str(model))
 
-    t0 = time()
+    if not os.path.isfile(args.model_file):
+        t0 = time()
+        model.train_model(pos=loc, ncounts=adata.X, raw_counts=adata.raw.X, size_factors=adata.obs.size_factors,
+                    lr=args.lr, weight_decay=args.weight_decay, batch_size=args.batch_size, num_samples=args.num_samples,
+                    train_size=args.train_size, maxiter=args.maxiter, save_model=True, model_weights=args.model_file)
+        print('Training time: %d seconds.' % int(time() - t0))
+    else:
+        model.load_model(args.model_file)
 
-    model.train_model(pos=loc, ncounts=adata.X, raw_counts=adata.raw.X, size_factors=adata.obs.size_factors,
-                lr=args.lr, weight_decay=args.weight_decay, batch_size=args.batch_size, num_samples=args.num_samples,
-                maxiter=args.maxiter, save_model=True, model_weights=args.model_file)
-    print('Training time: %d seconds.' % int(time() - t0))
-
-    spatial_score = model.spatial_score(gene_name=gene_name)
+    spatial_score = model.spatial_score(X=loc, Y=adata.X, batch_size=args.batch_size, gene_name=gene_name)
     spatial_score.to_csv(args.spatial_score_file)
+
+    if args.permutate > 0:
+        for i in range(int(args.permutate)):
+            model = SPALDVAE(input_dim=adata.n_vars, z_dim=args.z_dim, encoder_layers=args.encoder_layers, encoder_dropout=args.dropoutE,
+                fixed_inducing_points=args.fix_inducing_points, initial_inducing_points=initial_inducing_points, 
+                fixed_gp_params=args.fixed_gp_params, kernel_scale=args.kernel_scale, N_train=adata.n_obs, beta=args.beta, dtype=torch.float64, 
+                device=args.device)
+
+            print("Permutate position iter", i+1)
+            sample_idx = np.arange(loc.shape[0])
+            np.random.shuffle(sample_idx)
+            loc_permutate = loc[sample_idx]
+
+            t0 = time()
+            model.train_model(pos=loc_permutate, ncounts=adata.X, raw_counts=adata.raw.X, size_factors=adata.obs.size_factors,
+                        lr=args.lr, weight_decay=args.weight_decay, batch_size=args.batch_size, num_samples=args.num_samples,
+                        train_size=args.train_size, maxiter=args.maxiter, save_model=True, model_weights="Perturb_"+str(i+1)+"_"+args.model_file)
+            print('Training time: %d seconds.' % int(time() - t0))
+
+            spatial_score = model.spatial_score(X=loc, Y=adata.X, batch_size=args.batch_size, gene_name=gene_name)
+            spatial_score.to_csv("Permutate"+str(i+1)+"_"+args.spatial_score_file)
+

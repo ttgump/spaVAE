@@ -7,7 +7,7 @@ from torch.optim.lr_scheduler import *
 from torch.utils.data import DataLoader, TensorDataset
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 import numpy as np
-from kernel import EQKernel, CauchyKernel
+from kernel import CauchyKernel
 
 
 def _add_diagonal_jitter(matrix, jitter=1e-8):
@@ -30,7 +30,6 @@ class SVGP(nn.Module):
             self.inducing_index_points = nn.Parameter(torch.tensor(initial_inducing_points, dtype=dtype).to(device), requires_grad=True)
 
         # length scale of the kernel
-#        self.kernel = EQKernel(scale=kernel_scale, fixed_scale=fixed_gp_params, dtype=dtype, device=device).to(device)
         self.kernel = CauchyKernel(scale=kernel_scale, fixed_scale=fixed_gp_params, dtype=dtype, device=device).to(device)
 
     def kernel_matrix(self, x, y, x_inducing=True, y_inducing=True, diag_only=False):
@@ -45,7 +44,6 @@ class SVGP(nn.Module):
         """
 
         if diag_only:
-#            matrix = torch.diagonal(self.kernel(x, y))
             matrix = self.kernel.forward_diag(x, y)
         else:
             matrix = self.kernel(x, y)

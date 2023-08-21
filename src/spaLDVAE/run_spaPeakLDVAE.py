@@ -20,16 +20,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Spatial dependency-aware variational autoencoder with linear decoder',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--data_file', default='data.h5')
-    parser.add_argument('--select_genes', default=0, type=int)
-    parser.add_argument('--batch_size', default=512, type=int)
+    parser.add_argument('--batch_size', default=256, type=int)
     parser.add_argument('--maxiter', default=2000, type=int)
+    parser.add_argument('--train_size', default=1, type=float)
+    parser.add_argument('--patience', default=200, type=int)
     parser.add_argument('--lr', default=1e-3, type=float)
-    parser.add_argument('--weight_decay', default=1e-2, type=float)
+    parser.add_argument('--weight_decay', default=1e-6, type=float)
     parser.add_argument('--dropoutE', default=0, type=float,
                         help='dropout probability for encoder')
-    parser.add_argument('--encoder_layers', nargs="+", default=[512, 256, 128], type=int)
-    parser.add_argument('--z_dim', default=5, type=int,help='dimension of the latent embedding')
-    parser.add_argument('--beta', default=1, type=float,
+    parser.add_argument('--encoder_layers', nargs="+", default=[1024, 128], type=int)
+    parser.add_argument('--z_dim', default=25, type=int,help='dimension of the latent embedding')
+    parser.add_argument('--beta', default=10, type=float,
                         help='coefficient of the reconstruction loss')
     parser.add_argument('--num_samples', default=1, type=int)
     parser.add_argument('--fix_inducing_points', default=True, type=bool)
@@ -53,11 +54,6 @@ if __name__ == "__main__":
     peak_name = np.array(data_mat['Peakname']).astype('U30') # peak names
     data_mat.close()
 
-    if args.select_genes > 0:
-        importantGenes = geneSelection(x, n=args.select_genes, plot=False)
-        x = x[:, importantGenes]
-        np.savetxt("selected_genes.txt", importantGenes, delimiter=",", fmt="%i")
-
     scaler = MinMaxScaler()
     loc = scaler.fit_transform(loc) * args.loc_range
 
@@ -80,7 +76,7 @@ if __name__ == "__main__":
     adata = sc.AnnData(x, dtype="float64")
     adata.var["name"] = peak_name
 
-    adata = preprocessing_atac(adata)
+    adata = preprocessing_atac(adata, min_cells=0.05)
     peak_name = adata.var["name"].values.astype('U30')
 
     model = SPAPEAKLDVAE(input_dim=adata.n_vars, z_dim=args.z_dim, encoder_layers=args.encoder_layers, encoder_dropout=args.dropoutE,
@@ -97,5 +93,5 @@ if __name__ == "__main__":
                 model_weights=args.model_file)
     print('Training time: %d seconds.' % int(time() - t0))
 
-    spatial_score = model.spatial_score(peak_name=peak_name)
+    spatial_score = model.spatial_score(X=loc, Y=adata.X, batch_size=args.batch_size, peak_name=peak_name)
     spatial_score.to_csv(args.spatial_score_file)

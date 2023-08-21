@@ -8,6 +8,7 @@ from torch.optim.lr_scheduler import *
 from torch.utils.data import DataLoader, TensorDataset
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 import numpy as np
+from sklearn.mixture import GaussianMixture
 
 
 class DenseEncoder(nn.Module):
@@ -140,3 +141,13 @@ def gauss_cross_entropy(mu1, var1, mu2, var2):
 
     return cross_entropy
 
+
+def gmm_fit(data: np.ndarray, mode_coeff=0.6, min_thres=0.3):
+    """Returns delta estimate using GMM technique"""
+    # Custom definition
+    gmm = GaussianMixture(n_components=3)
+    gmm.fit(data[:, None])
+    vals = np.sort(gmm.means_.squeeze())
+    res = mode_coeff * np.abs(vals[[0, -1]]).mean()
+    res = np.maximum(min_thres, res)
+    return res
