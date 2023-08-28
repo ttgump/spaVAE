@@ -72,12 +72,12 @@ class SPAVAE(nn.Module):
                 fixed_gp_params=fixed_gp_params, kernel_scale=kernel_scale, jitter=1e-8, N_train=N_train, dtype=dtype, device=device)
         self.input_dim = input_dim
         self.PID = PIDControl(Kp=0.01, Ki=-0.005, init_beta=init_beta, min_beta=min_beta, max_beta=max_beta)
-        self.KL_loss = KL_loss         # expected KL loss value
-        self.beta = init_beta          # beta controls the weight of reconstruction loss
+        self.KL_loss = KL_loss          # expected KL loss value
+        self.beta = init_beta           # beta controls the weight of reconstruction loss
         self.dtype = dtype
         self.GP_dim = GP_dim            # dimension of latent Gaussian process embedding
         self.Normal_dim = Normal_dim    # dimension of latent standard Gaussian embedding
-        self.noise = noise      # intensity of random noise
+        self.noise = noise              # intensity of random noise
         self.device = device
         self.encoder = DenseEncoder(input_dim=input_dim, hidden_dims=encoder_layers, output_dim=GP_dim+Normal_dim, activation="elu", dropout=encoder_dropout)
         self.decoder = buildNetwork([GP_dim+Normal_dim]+decoder_layers, activation="elu", dropout=decoder_dropout)
