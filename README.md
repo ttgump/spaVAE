@@ -19,7 +19,8 @@ SpaVAE, spaPeakVAE, spaMultiVAE, and spaLDVAE are dependency-aware deep generati
 ## <a name="diagram"></a>Network diagram
 
 Diagram of spaVAE (**a**), spaPeakVAE (**a**), spaMultiVAE (**b**), and spaLDVAE (**c**) networks:
-![Model architecture](network.svg)
+
+<img src="https://github.com/ttgump/spaVAE/blob/main/network.svg" width="600" height="600">
 
 ## <a name="requirements"></a>Requirements
 
