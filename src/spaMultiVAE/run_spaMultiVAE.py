@@ -40,7 +40,7 @@ if __name__ == "__main__":
     parser.add_argument('--gene_decoder_layers', nargs="+", default=[128], type=int)
     parser.add_argument('--protein_decoder_layers', nargs="+", default=[128], type=int)
     parser.add_argument('--init_beta', default=10, type=float, help='initial coefficient of the KL loss')
-    parser.add_argument('--min_beta', default=1, type=float, help='minimal coefficient of the KL loss')
+    parser.add_argument('--min_beta', default=4, type=float, help='minimal coefficient of the KL loss')
     parser.add_argument('--max_beta', default=25, type=float, help='maximal coefficient of the KL loss')
     parser.add_argument('--KL_loss', default=0.025, type=float, help='desired KL_divergence value')
     parser.add_argument('--num_samples', default=1, type=int)
