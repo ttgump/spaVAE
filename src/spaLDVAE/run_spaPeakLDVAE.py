@@ -29,7 +29,7 @@ if __name__ == "__main__":
     parser.add_argument('--dropoutE', default=0, type=float,
                         help='dropout probability for encoder')
     parser.add_argument('--encoder_layers', nargs="+", default=[1024, 128], type=int)
-    parser.add_argument('--z_dim', default=25, type=int,help='dimension of the latent embedding')
+    parser.add_argument('--z_dim', default=15, type=int,help='dimension of the latent embedding')
     parser.add_argument('--beta', default=10, type=float,
                         help='coefficient of the reconstruction loss')
     parser.add_argument('--num_samples', default=1, type=int)
