@@ -36,11 +36,6 @@ class SPAPEAKLDVAE(nn.Module):
         self.prior_mu = nn.Parameter(torch.zeros(z_dim), requires_grad=True)
         self.prior_var = nn.Parameter(torch.zeros(z_dim), requires_grad=True)
 
-        self.l_encoder = buildNetwork([input_dim]+encoder_layers, activation="elu", dropout=encoder_dropout)
-        self.l_encoder.append(nn.Linear(encoder_layers[-1], 1))
-
-        self.peak_bias = nn.Parameter(torch.zeros(input_dim), requires_grad=True)
-
         self.BCE_loss = nn.BCELoss(reduction="none").to(self.device)
         self.to(device)
 
@@ -67,8 +62,6 @@ class SPAPEAKLDVAE(nn.Module):
         """ 
 
         self.train()
-
-        l_samples = self.l_encoder(y)
 
         b = y.shape[0]
         qnet_mu, qnet_var = self.encoder(y)
@@ -130,7 +123,7 @@ class SPAPEAKLDVAE(nn.Module):
             mean_samples_ = torch.matmul(f, torch.exp(self.decoder))
             mean_samples_ = mean_samples_ / (1+mean_samples_) # scale [0, infinity) to [0, 1)
 
-            recon_loss += self.BCE_loss(torch.sigmoid(l_samples)[:None] * mean_samples_ * torch.sigmoid(self.peak_bias).unsqueeze(0), y).sum()
+            recon_loss += self.BCE_loss(mean_samples_, y).sum()
         recon_loss = recon_loss / num_samples
 
         # ELBO
