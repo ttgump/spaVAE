@@ -8,6 +8,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
 import h5py
 import scanpy as sc
+from sklearn.neighbors import NearestNeighbors
 from preprocess import preprocessing_atac
 
 
@@ -51,6 +52,7 @@ if __name__ == "__main__":
     parser.add_argument('--model_file', default='model.pt')
     parser.add_argument('--final_latent_file', default='final_latent.txt')
     parser.add_argument('--denoised_counts_file', default='denoised_counts.txt')
+    parser.add_argument('--enhanced_counts_file', default='enhanced_counts.txt')
     parser.add_argument('--device', default='cuda')
 
     args = parser.parse_args()
@@ -108,11 +110,41 @@ if __name__ == "__main__":
 
     t0 = time()
 
-    model.train_model(pos=loc, counts=adata.X, lr=args.lr, weight_decay=args.weight_decay, 
-                batch_size=args.batch_size, num_samples=args.num_samples,
+    if not os.path.isfile(args.model_file):
+        t0 = time()
+        model.train_model(pos=loc, ncounts=adata.X, raw_counts=adata.raw.X, size_factors=adata.obs.size_factors,
+                lr=args.lr, weight_decay=args.weight_decay, batch_size=args.batch_size, num_samples=args.num_samples,
                 train_size=args.train_size, maxiter=args.maxiter, patience=args.patience, save_model=True, model_weights=args.model_file)
-    print('Training time: %d seconds.' % int(time() - t0))
+        print('Training time: %d seconds.' % int(time() - t0))
+    else:
+        model.load_model(args.model_file)
 
-    final_latent = model.batching_latent_samples(X=loc, Y=adata.X, batch_size=args.batch_size)
-    np.savetxt(args.final_latent_file, final_latent, delimiter=",")
+    denoised_counts = model.batching_denoise_counts(X=loc, Y=adata.X, batch_size=args.batch_size, n_samples=25)
+    np.savetxt(args.denoised_counts_file, denoised_counts, delimiter=",")
+
+    neigh = NearestNeighbors(n_neighbors=2).fit(loc)
+    nearest_dist = neigh.kneighbors(loc, n_neighbors=2)[0]
+    small_distance = np.median(nearest_dist[:,1])/4
+    loc_new1 = np.empty_like(loc)
+    loc_new2 = np.empty_like(loc)
+    loc_new3 = np.empty_like(loc)
+    loc_new4 = np.empty_like(loc)
+    loc_new1[:] = loc
+    loc_new2[:] = loc
+    loc_new3[:] = loc
+    loc_new4[:] = loc
+    loc_new1[:,0] = loc_new1[:,0] - small_distance
+    loc_new1[:,1] = loc_new1[:,1] + small_distance
+    loc_new2[:,0] = loc_new2[:,0] + small_distance
+    loc_new2[:,1] = loc_new2[:,1] + small_distance
+    loc_new3[:,0] = loc_new3[:,0] - small_distance
+    loc_new3[:,1] = loc_new3[:,1] - small_distance
+    loc_new4[:,0] = loc_new4[:,0] + small_distance
+    loc_new4[:,1] = loc_new4[:,1] - small_distance
+    loc_enhance = np.concatenate((loc_new1, loc_new2, loc_new3, loc_new4, loc), axis=0)
+
+    enhanced_latent, enhanced_counts = model.batching_predict_samples(X_test=loc_enhance, X_train=loc, Y_train=adata.X, batch_size=args.batch_size, n_samples=25)
+    np.savetxt(args.data_file[:-3]+"_enhanced_latent.txt", enhanced_latent, delimiter=",")
+    np.savetxt(args.data_file[:-3]+"_"+args.enhanced_counts_file, enhanced_counts, delimiter=",")
+    np.savetxt(args.data_file[:-3]+"_enhanced_loc.txt", loc_enhance, delimiter=",")
 

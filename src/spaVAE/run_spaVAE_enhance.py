@@ -2,14 +2,14 @@ import math, os
 from time import time
 
 import torch
-from spaPeakVAE import SPAPEAKVAE
+from spaVAE import SPAVAE
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
+from sklearn.neighbors import NearestNeighbors
 import h5py
 import scanpy as sc
-from preprocess import preprocessing_atac
-
+from preprocess import normalize, geneSelection
 
 # torch.manual_seed(42)
 
@@ -17,9 +17,10 @@ if __name__ == "__main__":
 
     # setting the hyper parameters
     import argparse
-    parser = argparse.ArgumentParser(description='Differential accessibility analysis',
+    parser = argparse.ArgumentParser(description='train',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--data_file', default='data.h5')
+    parser.add_argument('--select_genes', default=0, type=int)
     parser.add_argument('--batch_size', default="auto")
     parser.add_argument('--maxiter', default=5000, type=int)
     parser.add_argument('--train_size', default=0.95, type=float)
@@ -31,16 +32,15 @@ if __name__ == "__main__":
                         help='dropout probability for encoder')
     parser.add_argument('--dropoutD', default=0, type=float,
                         help='dropout probability for decoder')
-    parser.add_argument('--encoder_layers', nargs="+", default=[1024, 128], type=int)
-    parser.add_argument('--GP_dim', default=4, type=int,help='dimension of the latent Gaussian process embedding')
+    parser.add_argument('--encoder_layers', nargs="+", default=[128, 64], type=int)
+    parser.add_argument('--GP_dim', default=2, type=int,help='dimension of the latent Gaussian process embedding')
     parser.add_argument('--Normal_dim', default=8, type=int,help='dimension of the latent standard Gaussian embedding')
-    parser.add_argument('--decoder_layers', nargs="+", default=[128, 1024], type=int)
+    parser.add_argument('--decoder_layers', nargs="+", default=[128], type=int)
     parser.add_argument('--init_beta', default=10, type=float, help='initial coefficient of the KL loss')
     parser.add_argument('--min_beta', default=4, type=float, help='minimal coefficient of the KL loss')
     parser.add_argument('--max_beta', default=25, type=float, help='maximal coefficient of the KL loss')
     parser.add_argument('--KL_loss', default=0.025, type=float, help='desired KL_divergence value')
     parser.add_argument('--num_samples', default=1, type=int)
-    parser.add_argument('--num_denoise_samples', default=10000, type=int)
     parser.add_argument('--fix_inducing_points', default=True, type=bool)
     parser.add_argument('--grid_inducing_points', default=True, type=bool, 
                         help='whether to generate grid inducing points or use k-means centroids on locations as inducing points')
@@ -52,14 +52,15 @@ if __name__ == "__main__":
     parser.add_argument('--model_file', default='model.pt')
     parser.add_argument('--final_latent_file', default='final_latent.txt')
     parser.add_argument('--denoised_counts_file', default='denoised_counts.txt')
+    parser.add_argument('--enhanced_counts_file', default='enhanced_counts.txt')
     parser.add_argument('--device', default='cuda')
 
     args = parser.parse_args()
+    print(args)
 
     data_mat = h5py.File(args.data_file, 'r')
-    x = np.array(data_mat['Peakcounts']).astype('float64')      # count matrix
-    loc = np.array(data_mat['Pos']).astype('float64')           # location information
-    peak_name = np.array(data_mat['Peaknames']).astype('U30')   # peak names
+    x = np.array(data_mat['X']).astype('float64')
+    loc = np.array(data_mat['pos']).astype('float64')
     data_mat.close()
 
     if args.batch_size == "auto":
@@ -74,7 +75,10 @@ if __name__ == "__main__":
 
     print(args)
 
-    labels = np.loadtxt("annotated_labels.txt", dtype='str', delimiter="\n").astype('U30')
+    if args.select_genes > 0:
+        importantGenes = geneSelection(x, n=args.select_genes, plot=False)
+        x = x[:, importantGenes]
+        np.savetxt("selected_genes.txt", importantGenes, delimiter=",", fmt="%i")
 
     scaler = MinMaxScaler()
     loc = scaler.fit_transform(loc) * args.loc_range
@@ -96,12 +100,13 @@ if __name__ == "__main__":
         initial_inducing_points = loc_kmeans.cluster_centers_
 
     adata = sc.AnnData(x, dtype="float64")
-    adata.var["name"] = peak_name
 
-    adata = preprocessing_atac(adata)
-    peak_name = adata.var["name"].values.astype('U30')
+    adata = normalize(adata,
+                      size_factors=True,
+                      normalize_input=True,
+                      logtrans_input=True)
 
-    model = SPAPEAKVAE(input_dim=adata.n_vars, GP_dim=args.GP_dim, Normal_dim=args.Normal_dim, encoder_layers=args.encoder_layers, decoder_layers=args.decoder_layers,
+    model = SPAVAE(input_dim=adata.n_vars, GP_dim=args.GP_dim, Normal_dim=args.Normal_dim, encoder_layers=args.encoder_layers, decoder_layers=args.decoder_layers,
         noise=args.noise, encoder_dropout=args.dropoutE, decoder_dropout=args.dropoutD,
         fixed_inducing_points=args.fix_inducing_points, initial_inducing_points=initial_inducing_points, 
         fixed_gp_params=args.fixed_gp_params, kernel_scale=args.kernel_scale, N_train=adata.n_obs, KL_loss=args.KL_loss, init_beta=args.init_beta, min_beta=args.min_beta, 
@@ -109,30 +114,38 @@ if __name__ == "__main__":
 
     print(str(model))
 
-    model.load_model(args.model_file)
+    if not os.path.isfile(args.model_file):
+        t0 = time()
+        model.train_model(pos=loc, ncounts=adata.X, raw_counts=adata.raw.X, size_factors=adata.obs.size_factors,
+                lr=args.lr, weight_decay=args.weight_decay, batch_size=args.batch_size, num_samples=args.num_samples,
+                train_size=args.train_size, maxiter=args.maxiter, patience=args.patience, save_model=True, model_weights=args.model_file)
+        print('Training time: %d seconds.' % int(time() - t0))
+    else:
+        model.load_model(args.model_file)
 
-    layer_idx_1 = np.where(np.array(labels=="Forebrain", dtype=bool))[0]
-    layer_idx_2 = np.where(np.array(labels=="Midbrain", dtype=bool))[0]
+    neigh = NearestNeighbors(n_neighbors=2).fit(loc)
+    nearest_dist = neigh.kneighbors(loc, n_neighbors=2)[0]
+    small_distance = np.median(nearest_dist[:,1])/4
+    loc_new1 = np.empty_like(loc)
+    loc_new2 = np.empty_like(loc)
+    loc_new3 = np.empty_like(loc)
+    loc_new4 = np.empty_like(loc)
+    loc_new1[:] = loc
+    loc_new2[:] = loc
+    loc_new3[:] = loc
+    loc_new4[:] = loc
+    loc_new1[:,0] = loc_new1[:,0] - small_distance
+    loc_new1[:,1] = loc_new1[:,1] + small_distance
+    loc_new2[:,0] = loc_new2[:,0] + small_distance
+    loc_new2[:,1] = loc_new2[:,1] + small_distance
+    loc_new3[:,0] = loc_new3[:,0] - small_distance
+    loc_new3[:,1] = loc_new3[:,1] - small_distance
+    loc_new4[:,0] = loc_new4[:,0] + small_distance
+    loc_new4[:,1] = loc_new4[:,1] - small_distance
+    loc_enhance = np.concatenate((loc_new1, loc_new2, loc_new3, loc_new4, loc), axis=0)
 
-    res_dat = model.differential_accessibility(group1_idx=layer_idx_1, group2_idx=layer_idx_2, num_denoise_samples=args.num_denoise_samples,
-                        batch_size=args.batch_size, pos=loc, counts=adata.X, peak_name=peak_name)
+    enhanced_latent, enhanced_counts = model.batching_predict_samples(X_test=loc_enhance, X_train=loc, Y_train=adata.X, batch_size=args.batch_size, n_samples=25)
+    np.savetxt(args.data_file[:-3]+"_enhanced_latent.txt", enhanced_latent, delimiter=",")
+    np.savetxt(args.data_file[:-3]+"_"+args.enhanced_counts_file, enhanced_counts, delimiter=",")
+    np.savetxt(args.data_file[:-3]+"_enhanced_loc.txt", loc_enhance, delimiter=",")
 
-    res_dat.to_csv("Forebrain_vs_Midbrain_LFC.txt")
-
-
-    layer_idx_1 = np.where(np.array(labels=="Forebrain", dtype=bool))[0]
-    layer_idx_2 = np.where(np.array(labels=="Hindbrain", dtype=bool))[0]
-
-    res_dat = model.differential_accessibility(group1_idx=layer_idx_1, group2_idx=layer_idx_2, num_denoise_samples=args.num_denoise_samples,
-                        batch_size=args.batch_size, pos=loc, counts=adata.X, peak_name=peak_name)
-
-    res_dat.to_csv("Forebrain_vs_Hindbrain_LFC.txt")
-
-
-    layer_idx_1 = np.where(np.array(labels=="Midbrain", dtype=bool))[0]
-    layer_idx_2 = np.where(np.array(labels=="Hindbrain", dtype=bool))[0]
-
-    res_dat = model.differential_accessibility(group1_idx=layer_idx_1, group2_idx=layer_idx_2, num_denoise_samples=args.num_denoise_samples,
-                        batch_size=args.batch_size, pos=loc, counts=adata.X, peak_name=peak_name)
-
-    res_dat.to_csv("Midbrain_vs_Hindbrain_LFC.txt")
