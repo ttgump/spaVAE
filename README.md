@@ -60,7 +60,7 @@ python run_spaPeakVAE.py --data_file MISAR_seq_mouse_E15_brain_ATAC_data.h5 --in
 For spatial multi-omics Spatial-ATAC-seq data:
 
 ```sh
-python run_spaMultiVAE.py --data_file Multiomics_Spatial_ATAC_Human_tonsil_data.sh --inducing_point_steps 19
+python run_spaMultiVAE.py --data_file Multiomics_Spatial_ATAC_Human_tonsil_data.h5 --inducing_point_steps 19
 ```
 
 --data_file specifies the data file name, in the h5 file. For SRT data, spot-by-gene count matrix is stored in "X" and 2D location is stored in "pos". For spatial ATAC-seq data, "X" represents spot-by-peak count matrix. For spatial multi-omics data, "X_gene" represents spot-by-gene count matrix, and "X_protein" represents spot-by-protein count matrix.
