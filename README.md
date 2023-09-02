@@ -86,7 +86,7 @@ python run_spaMultiVAE.py --data_file Multiomics_Spatial_ATAC_Human_tonsil_data.
 **--Normal_dim:** dimension of the latent standard Gaussian embedding, default = 8.<br/>
 **--decoder_layers:** hidden layer sizes of decoder, default = [128].<br/>
 **--init_beta:** initial coefficient of the KL loss, default = 10.<br/>
-**--min_beta:** minimal coefficient of the KL loss, default = 1.<br/>
+**--min_beta:** minimal coefficient of the KL loss, default = 4.<br/>
 **--max_beta:** maximal coefficient of the KL loss, default = 25.<br/>
 **--KL_loss:** desired KL_divergence value (GP and standard normal combined), default = 0.025.<br/>
 **--num_samples:** number of samplings of the posterior distribution of latent embedding during training, default = 1.<br/>
