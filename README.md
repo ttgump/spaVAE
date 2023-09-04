@@ -57,10 +57,10 @@ For spatial ATAC-seq dataset of mouse embryonic (E15.5) brain tissues in the MIS
 python run_spaPeakVAE.py --data_file MISAR_seq_mouse_E15_brain_ATAC_data.h5 --inducing_point_steps 19
 ```
 
-For spatial multi-omics Spatial-ATAC-seq data:
+For spatial multi-omics Spatial-CITE-seq data:
 
 ```sh
-python run_spaMultiVAE.py --data_file Multiomics_Spatial_ATAC_Human_tonsil_data.h5 --inducing_point_steps 19
+python run_spaMultiVAE.py --data_file Multiomics_Spatial_Human_tonsil_SVG_data.h5 --inducing_point_steps 19
 ```
 
 --data_file specifies the data file name, in the h5 file. For SRT data, spot-by-gene count matrix is stored in "X" and 2D location is stored in "pos". For spatial ATAC-seq data, "X" represents spot-by-peak count matrix. For spatial multi-omics data, "X_gene" represents spot-by-gene count matrix, and "X_protein" represents spot-by-protein count matrix.
@@ -87,7 +87,7 @@ python run_spaMultiVAE.py --data_file Multiomics_Spatial_ATAC_Human_tonsil_data.
 **--decoder_layers:** hidden layer sizes of decoder, default = [128].<br/>
 **--init_beta:** initial coefficient of the KL loss, default = 10.<br/>
 **--min_beta:** minimal coefficient of the KL loss, default = 4.<br/>
-**--max_beta:** maximal coefficient of the KL loss, default = 25.<br/>
+**--max_beta:** maximal coefficient of the KL loss, default = 25. min_beta, max_beta, and KL_loss are used for dynamic VAE algorithm.<br/>
 **--KL_loss:** desired KL_divergence value (GP and standard normal combined), default = 0.025.<br/>
 **--num_samples:** number of samplings of the posterior distribution of latent embedding during training, default = 1.<br/>
 **--fix_inducing_points:** fixed or trainable inducing points, default = True, which means inducing points are fixed.<br/>
