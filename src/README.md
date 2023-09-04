@@ -22,4 +22,4 @@ The spaMultiVAE model for spatial multiomics data (transcriptomics and surface p
 
 ## utilities
 
-Source code of some utilities, including clustering refinement.
+Source code of some utilities, including louvaining clustering, clustering refinement, and calculating Moran's I.
