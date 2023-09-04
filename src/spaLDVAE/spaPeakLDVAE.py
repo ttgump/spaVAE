@@ -188,7 +188,7 @@ class SPAPEAKLDVAE(nn.Module):
         return res_dat
 
 
-    def train_model(self, pos, counts, lr=0.001, weight_decay=0.001, batch_size=512, num_samples=1, 
+    def train_model(self, pos, counts, lr=0.001, weight_decay=0.001, batch_size=256, num_samples=1, 
             maxiter=2000, save_model=True, model_weights="model.pt", print_kernel_scale=True):
         """
         Model training.

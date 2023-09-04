@@ -5,6 +5,7 @@ import torch
 from spaMultiVAE import SPAMULTIVAE
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 from sklearn.neighbors import NearestNeighbors
 import h5py
@@ -47,11 +48,14 @@ if __name__ == "__main__":
     parser.add_argument('--num_samples', default=1, type=int)
     parser.add_argument('--fix_inducing_points', default=True, type=bool)
     parser.add_argument('--inducing_point_steps', default=None, type=int)
+    parser.add_argument('--inducing_point_nums', default=None, type=int)
+    parser.add_argument('--inducing_point_file', default="inducing_point.txt")
     parser.add_argument('--fixed_gp_params', default=False, type=bool)
     parser.add_argument('--loc_range', default=20., type=float)
     parser.add_argument('--kernel_scale', default=20., type=float)
     parser.add_argument('--model_file', default='model.pt')
-    parser.add_argument('--final_latent_file', default='final_latent.txt')
+    parser.add_argument('--final_latent_file', default='final_latent.txt',
+                        help="file to save inducing points")
     parser.add_argument('--gene_denoised_counts_file', default='gene_denoised_counts.txt')
     parser.add_argument('--protein_denoised_counts_file', default='protein_denoised_counts.txt')
     parser.add_argument('--protein_sigmoid_file', default='protein_sigmoid.txt')
@@ -98,9 +102,21 @@ if __name__ == "__main__":
     print(x2.shape)
     print(loc.shape)
 
-    eps = 1e-5
-    initial_inducing_points = np.mgrid[0:(1+eps):(1./args.inducing_point_steps), 0:(1+eps):(1./args.inducing_point_steps)].reshape(2, -1).T * args.loc_range
-    print(initial_inducing_points.shape)
+    if not os.path.isfile(args.inducing_point_file):
+        # We provide two ways to generate inducing point, argument "grid_inducing_points" controls whether to choice grid inducing or k-means
+        # One way is grid inducing points, argument "inducing_point_steps" controls number of grid steps, the resulting number of inducing point is (inducing_point_steps+1)^2
+        # Another way is k-means on the locations, argument "inducing_point_nums" controls number of inducing points
+        if args.grid_inducing_points:
+            eps = 1e-5
+            initial_inducing_points = np.mgrid[0:(1+eps):(1./args.inducing_point_steps), 0:(1+eps):(1./args.inducing_point_steps)].reshape(2, -1).T * args.loc_range
+            print(initial_inducing_points.shape)
+        else:
+            loc_kmeans = KMeans(n_clusters=args.inducing_point_nums, n_init=100).fit(loc)
+            np.savetxt("location_centroids.txt", loc_kmeans.cluster_centers_, delimiter=",")
+            np.savetxt("location_kmeans_labels.txt", loc_kmeans.labels_, delimiter=",", fmt="%i")
+            initial_inducing_points = loc_kmeans.cluster_centers_
+    else:
+        initial_inducing_points = np.loadtxt(args.inducing_point_file, delimiter=",")
 
     adata1 = sc.AnnData(x1, dtype="float64")
     adata1 = normalize(adata1,

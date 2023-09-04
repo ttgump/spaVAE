@@ -6,7 +6,6 @@ from spaLDVAE import SPALDVAE
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
-from sklearn.metrics import roc_auc_score, pairwise_distances
 import h5py
 import scanpy as sc
 from preprocess import normalize, geneSelection
@@ -24,8 +23,6 @@ if __name__ == "__main__":
     parser.add_argument('--select_genes', default=0, type=int)
     parser.add_argument('--batch_size', default=256, type=int)
     parser.add_argument('--maxiter', default=2000, type=int)
-    parser.add_argument('--train_size', default=1, type=float)
-    parser.add_argument('--patience', default=200, type=int)
     parser.add_argument('--lr', default=1e-3, type=float)
     parser.add_argument('--weight_decay', default=1e-6, type=float)
     parser.add_argument('--dropoutE', default=0, type=float,
@@ -103,7 +100,7 @@ if __name__ == "__main__":
         t0 = time()
         model.train_model(pos=loc, ncounts=adata.X, raw_counts=adata.raw.X, size_factors=adata.obs.size_factors,
                     lr=args.lr, weight_decay=args.weight_decay, batch_size=args.batch_size, num_samples=args.num_samples,
-                    train_size=args.train_size, maxiter=args.maxiter, save_model=True, model_weights=args.model_file)
+                    maxiter=args.maxiter, save_model=True, model_weights=args.model_file)
         print('Training time: %d seconds.' % int(time() - t0))
     else:
         model.load_model(args.model_file)
@@ -126,7 +123,7 @@ if __name__ == "__main__":
             t0 = time()
             model.train_model(pos=loc_permutate, ncounts=adata.X, raw_counts=adata.raw.X, size_factors=adata.obs.size_factors,
                         lr=args.lr, weight_decay=args.weight_decay, batch_size=args.batch_size, num_samples=args.num_samples,
-                        train_size=args.train_size, maxiter=args.maxiter, save_model=True, model_weights="Perturb_"+str(i+1)+"_"+args.model_file)
+                        maxiter=args.maxiter, save_model=True, model_weights="Perturb_"+str(i+1)+"_"+args.model_file)
             print('Training time: %d seconds.' % int(time() - t0))
 
             spatial_score = model.spatial_score(X=loc, Y=adata.X, batch_size=args.batch_size, gene_name=gene_name)

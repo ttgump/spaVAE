@@ -22,8 +22,6 @@ if __name__ == "__main__":
     parser.add_argument('--data_file', default='data.h5')
     parser.add_argument('--batch_size', default=256, type=int)
     parser.add_argument('--maxiter', default=2000, type=int)
-    parser.add_argument('--train_size', default=1, type=float)
-    parser.add_argument('--patience', default=200, type=int)
     parser.add_argument('--lr', default=1e-3, type=float)
     parser.add_argument('--weight_decay', default=1e-6, type=float)
     parser.add_argument('--dropoutE', default=0, type=float,
@@ -86,12 +84,33 @@ if __name__ == "__main__":
 
     print(str(model))
 
-    t0 = time()
-
-    model.train_model(pos=loc, counts=adata.X, lr=args.lr, weight_decay=args.weight_decay, 
-                batch_size=args.batch_size, num_samples=args.num_samples, maxiter=args.maxiter, save_model=True, 
-                model_weights=args.model_file)
-    print('Training time: %d seconds.' % int(time() - t0))
+    if not os.path.isfile(args.model_file):
+        t0 = time()
+        model.train_model(pos=loc, counts=adata.X, lr=args.lr, weight_decay=args.weight_decay, batch_size=args.batch_size, 
+                          num_samples=args.num_samples, maxiter=args.maxiter, save_model=True, model_weights=args.model_file)
+        print('Training time: %d seconds.' % int(time() - t0))
+    else:
+        model.load_model(args.model_file)
 
     spatial_score = model.spatial_score(X=loc, Y=adata.X, batch_size=args.batch_size, peak_name=peak_name)
     spatial_score.to_csv(args.spatial_score_file)
+
+    if args.permutate > 0:
+        for i in range(int(args.permutate)):
+            model = SPAPEAKLDVAE(input_dim=adata.n_vars, z_dim=args.z_dim, encoder_layers=args.encoder_layers, encoder_dropout=args.dropoutE,
+                fixed_inducing_points=args.fix_inducing_points, initial_inducing_points=initial_inducing_points, 
+                fixed_gp_params=args.fixed_gp_params, kernel_scale=args.kernel_scale, N_train=adata.n_obs, beta=args.beta, dtype=torch.float64, 
+                device=args.device)
+
+            print("Permutate position iter", i+1)
+            sample_idx = np.arange(loc.shape[0])
+            np.random.shuffle(sample_idx)
+            loc_permutate = loc[sample_idx]
+
+            t0 = time()
+            model.train_model(pos=loc_permutate, counts=adata.X, lr=args.lr, weight_decay=args.weight_decay, batch_size=args.batch_size, 
+                              num_samples=args.num_samples, maxiter=args.maxiter, save_model=True, model_weights="Perturb_"+str(i+1)+"_"+args.model_file)
+            print('Training time: %d seconds.' % int(time() - t0))
+
+            spatial_score = model.spatial_score(X=loc, Y=adata.X, batch_size=args.batch_size, peak_name=peak_name)
+            spatial_score.to_csv("Permutate"+str(i+1)+"_"+args.spatial_score_file)

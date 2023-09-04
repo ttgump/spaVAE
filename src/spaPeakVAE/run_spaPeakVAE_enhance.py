@@ -46,6 +46,8 @@ if __name__ == "__main__":
                         help='whether to generate grid inducing points or use k-means centroids on locations as inducing points')
     parser.add_argument('--inducing_point_steps', default=None, type=int)
     parser.add_argument('--inducing_point_nums', default=None, type=int)
+    parser.add_argument('--inducing_point_file', default="inducing_point.txt",
+                        help="file to save inducing points")
     parser.add_argument('--fixed_gp_params', default=False, type=bool)
     parser.add_argument('--loc_range', default=20., type=float)
     parser.add_argument('--kernel_scale', default=20., type=float)
@@ -81,18 +83,21 @@ if __name__ == "__main__":
     print(x.shape)
     print(loc.shape)
 
-    # We provide two ways to generate inducing point, argument "grid_inducing_points" controls whether to choice grid inducing or k-means
-    # One way is grid inducing points, argument "inducing_point_steps" controls number of grid steps, the resulting number of inducing point is (inducing_point_steps+1)^2
-    # Another way is k-means on the locations, argument "inducing_point_nums" controls number of inducing points
-    if args.grid_inducing_points:
-        eps = 1e-5
-        initial_inducing_points = np.mgrid[0:(1+eps):(1./args.inducing_point_steps), 0:(1+eps):(1./args.inducing_point_steps)].reshape(2, -1).T * args.loc_range
-        print(initial_inducing_points.shape)
+    if not os.path.isfile(args.inducing_point_file):
+        # We provide two ways to generate inducing point, argument "grid_inducing_points" controls whether to choice grid inducing or k-means
+        # One way is grid inducing points, argument "inducing_point_steps" controls number of grid steps, the resulting number of inducing point is (inducing_point_steps+1)^2
+        # Another way is k-means on the locations, argument "inducing_point_nums" controls number of inducing points
+        if args.grid_inducing_points:
+            eps = 1e-5
+            initial_inducing_points = np.mgrid[0:(1+eps):(1./args.inducing_point_steps), 0:(1+eps):(1./args.inducing_point_steps)].reshape(2, -1).T * args.loc_range
+            print(initial_inducing_points.shape)
+        else:
+            loc_kmeans = KMeans(n_clusters=args.inducing_point_nums, n_init=100).fit(loc)
+            np.savetxt("location_centroids.txt", loc_kmeans.cluster_centers_, delimiter=",")
+            np.savetxt("location_kmeans_labels.txt", loc_kmeans.labels_, delimiter=",", fmt="%i")
+            initial_inducing_points = loc_kmeans.cluster_centers_
     else:
-        loc_kmeans = KMeans(n_clusters=args.inducing_point_nums, n_init=100).fit(loc)
-        np.savetxt("location_centroids.txt", loc_kmeans.cluster_centers_, delimiter=",")
-        np.savetxt("location_kmeans_labels.txt", loc_kmeans.labels_, delimiter=",", fmt="%i")
-        initial_inducing_points = loc_kmeans.cluster_centers_
+        initial_inducing_points = np.loadtxt(args.inducing_point_file, delimiter=",")
 
     adata = sc.AnnData(x, dtype="float64")
     adata.var["name"] = peak_name
@@ -108,19 +113,7 @@ if __name__ == "__main__":
 
     print(str(model))
 
-    t0 = time()
-
-    if not os.path.isfile(args.model_file):
-        t0 = time()
-        model.train_model(pos=loc, ncounts=adata.X, raw_counts=adata.raw.X, size_factors=adata.obs.size_factors,
-                lr=args.lr, weight_decay=args.weight_decay, batch_size=args.batch_size, num_samples=args.num_samples,
-                train_size=args.train_size, maxiter=args.maxiter, patience=args.patience, save_model=True, model_weights=args.model_file)
-        print('Training time: %d seconds.' % int(time() - t0))
-    else:
-        model.load_model(args.model_file)
-
-    denoised_counts = model.batching_denoise_counts(X=loc, Y=adata.X, batch_size=args.batch_size, n_samples=25)
-    np.savetxt(args.denoised_counts_file, denoised_counts, delimiter=",")
+    model.load_model(args.model_file)
 
     neigh = NearestNeighbors(n_neighbors=2).fit(loc)
     nearest_dist = neigh.kneighbors(loc, n_neighbors=2)[0]

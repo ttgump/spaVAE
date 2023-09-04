@@ -6,7 +6,6 @@ from spaVAE import SPAVAE
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
-from sklearn import metrics
 import h5py
 import scanpy as sc
 from preprocess import normalize, geneSelection

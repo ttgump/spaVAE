@@ -116,3 +116,5 @@ if __name__ == "__main__":
     final_latent = model.batching_latent_samples(X=loc, Y=adata.X, batch_size=args.batch_size)
     np.savetxt(args.final_latent_file, final_latent, delimiter=",")
 
+    denoised_counts = model.batching_denoise_counts(X=loc, Y=adata.X, batch_size=args.batch_size, n_samples=25)
+    np.savetxt(args.denoised_counts_file, denoised_counts, delimiter=",")

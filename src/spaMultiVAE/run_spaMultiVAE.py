@@ -5,6 +5,7 @@ import torch
 from spaMultiVAE import SPAMULTIVAE
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 import h5py
 import scanpy as sc
@@ -46,6 +47,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_samples', default=1, type=int)
     parser.add_argument('--fix_inducing_points', default=True, type=bool)
     parser.add_argument('--inducing_point_steps', default=None, type=int)
+    parser.add_argument('--inducing_point_nums', default=None, type=int)
     parser.add_argument('--fixed_gp_params', default=False, type=bool)
     parser.add_argument('--loc_range', default=20., type=float)
     parser.add_argument('--kernel_scale', default=20., type=float)
@@ -54,9 +56,6 @@ if __name__ == "__main__":
     parser.add_argument('--gene_denoised_counts_file', default='gene_denoised_counts.txt')
     parser.add_argument('--protein_denoised_counts_file', default='protein_denoised_counts.txt')
     parser.add_argument('--protein_sigmoid_file', default='protein_sigmoid.txt')
-    parser.add_argument('--gene_enhanced_denoised_counts_file', default='gene_enhanced_denoised_counts.txt')
-    parser.add_argument('--protein_enhanced_denoised_counts_file', default='protein_enhanced_denoised_counts.txt')
-    parser.add_argument('--enhanced_loc_file', default='enhanced_loc.txt')
     parser.add_argument('--device', default='cuda')
 
     args = parser.parse_args()
@@ -96,9 +95,18 @@ if __name__ == "__main__":
     print(x2.shape)
     print(loc.shape)
 
-    eps = 1e-5
-    initial_inducing_points = np.mgrid[0:(1+eps):(1./args.inducing_point_steps), 0:(1+eps):(1./args.inducing_point_steps)].reshape(2, -1).T * args.loc_range
-    print(initial_inducing_points.shape)
+    # We provide two ways to generate inducing point, argument "grid_inducing_points" controls whether to choice grid inducing or k-means
+    # One way is grid inducing points, argument "inducing_point_steps" controls number of grid steps, the resulting number of inducing point is (inducing_point_steps+1)^2
+    # Another way is k-means on the locations, argument "inducing_point_nums" controls number of inducing points
+    if args.grid_inducing_points:
+        eps = 1e-5
+        initial_inducing_points = np.mgrid[0:(1+eps):(1./args.inducing_point_steps), 0:(1+eps):(1./args.inducing_point_steps)].reshape(2, -1).T * args.loc_range
+        print(initial_inducing_points.shape)
+    else:
+        loc_kmeans = KMeans(n_clusters=args.inducing_point_nums, n_init=100).fit(loc)
+        np.savetxt("location_centroids.txt", loc_kmeans.cluster_centers_, delimiter=",")
+        np.savetxt("location_kmeans_labels.txt", loc_kmeans.labels_, delimiter=",", fmt="%i")
+        initial_inducing_points = loc_kmeans.cluster_centers_
 
     adata1 = sc.AnnData(x1, dtype="float64")
     adata1 = normalize(adata1,
@@ -135,13 +143,15 @@ if __name__ == "__main__":
 
     print(str(model))
 
-    t0 = time()
-
-    model.train_model(pos=loc, gene_ncounts=adata1.X, gene_raw_counts=adata1.raw.X, gene_size_factors=adata1.obs.size_factors, 
-                protein_ncounts=adata2.X, protein_raw_counts=adata2.raw.X,
-                lr=args.lr, weight_decay=args.weight_decay, batch_size=args.batch_size, num_samples=args.num_samples,
-                train_size=args.train_size, maxiter=args.maxiter, patience=args.patience, save_model=True, model_weights=args.model_file)
-    print('Training time: %d seconds.' % int(time() - t0))
+    if not os.path.isfile(args.model_file):
+        t0 = time()
+        model.train_model(pos=loc, gene_ncounts=adata1.X, gene_raw_counts=adata1.raw.X, gene_size_factors=adata1.obs.size_factors, 
+                    protein_ncounts=adata2.X, protein_raw_counts=adata2.raw.X,
+                    lr=args.lr, weight_decay=args.weight_decay, batch_size=args.batch_size, num_samples=args.num_samples,
+                    train_size=args.train_size, maxiter=args.maxiter, patience=args.patience, save_model=True, model_weights=args.model_file)
+        print('Training time: %d seconds.' % int(time() - t0))
+    else:
+        model.load_model(args.model_file)
 
     final_latent = model.batching_latent_samples(X=loc, gene_Y=adata1.X, protein_Y=adata2.X, batch_size=args.batch_size)
     np.savetxt(args.final_latent_file, final_latent, delimiter=",")
