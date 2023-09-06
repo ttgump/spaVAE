@@ -20,4 +20,4 @@ These folders store tutorials to illustrate different functionalities of spaVAE 
 
 ## spatial_multiomics_data
 
-**spaMultiVAE_tutorial.ipynb:** applying spaMultiVAE to the spatial multi-omics DBiT-seq data, including clustering, denoising protein background intensity, and enhancing resolution analysis.
+**spaMultiVAE_tutorial.ipynb:** applying spaMultiVAE to the spatial CITE-seq data of human tonsil, including clustering, denoising protein background intensity, and enhancing resolution analysis.
