@@ -10,7 +10,7 @@ These folders store tutorials to illustrate different functionalities of spaVAE 
 
 **Human_DLPFC_section_151673_spaLDVAE.ipynb:** applying spaLDVAE for detecting top spatial and non-spatial genes.
 
-## Mouse_anterior_and_posterior_brain_datasets
+## 10X_Mouse_anterior_brains
 
 **Mouse_anterior_brain_tutorial.ipynb:** applying spaVAE_Batch version for integrating the two batches of 10X mouse anterior brain datasets, including latent representation, and differential expression analysis.
 
