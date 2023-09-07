@@ -1,10 +1,10 @@
 # Spatial dependency-aware deep generative models
 
 SpaVAE, spaPeakVAE, spaMultiVAE, and spaLDVAE are dependency-aware deep generative models for multitasking analysis of spatial genomics data. Different models are designed for different analytical tasks of spatial genomics data.<br/>
-**spaVAE** is a negative binomial (NB) model-based variational autoencoder (VAE) with a mixture embedding of Gaussian process (GP) prior and Gaussian prior. The model is for multitasking analysis of spatially resolved transcriptomics (SRT) data, including dimensionality reduction, visualization, clustering, batch integration, denoising, differential expression, spatial imputation, and  resolution enhancement.<br/>
+**spaVAE** is a negative binomial (NB) model-based variational autoencoder (VAE) with a hybrid embedding of Gaussian process (GP) prior and Gaussian prior. The model is for multitasking analysis of spatially resolved transcriptomics (SRT) data, including dimensionality reduction, visualization, clustering, batch integration, denoising, differential expression, spatial imputation, and  resolution enhancement.<br/>
 **spaPeakVAE** is a variant model of spaVAE, which uses a Bernoulli decoder to characterize spatial ATAC-seq binary data. The analytical tasks in spaVAE can also be fulfilled by spaPeakVAE for spatial ATAC-seq data.<br/>
 **spaMultiVAE** characterizes spatial multi-omics data, which profiles gene expression and surface protein intensity simultaneously. Besides the analyses aforementioned, spaMultiVAE uses a NB mixture decoder to denoise backgrounds in proteins.<br/>
-**spaLDVAE** and **spaPeakLDVAE** are spaVAE variants with a linear decoder, which also contains two latent embedding components, one follows GP prior and the other follows standard normal prior. The model can be used for detecting spatial variable genes and peaks. 
+**spaLDVAE** and **spaPeakLDVAE** are spaVAE variants with a linear decoder, which also contains two hybrid latent embedding components, one follows GP prior and the other follows standard normal prior. The model can be used for detecting spatial variable genes and peaks. 
 
 ## Table of contents
 - [Network diagram](#diagram)
