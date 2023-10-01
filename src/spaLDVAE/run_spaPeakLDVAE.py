@@ -39,6 +39,7 @@ if __name__ == "__main__":
     parser.add_argument('--fixed_gp_params', default=False, type=bool)
     parser.add_argument('--loc_range', default=20., type=float)
     parser.add_argument('--kernel_scale', default=20., type=float)
+    parser.add_argument('--permutate', default=0, type=int)
     parser.add_argument('--model_file', default='model.pt')
     parser.add_argument('--spatial_score_file', default='spatial_score.txt')
     parser.add_argument('--device', default='cuda')
