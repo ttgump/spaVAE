@@ -6,7 +6,7 @@ These folders store tutorials to illustrate different functionalities of spaVAE 
 
 **Human_DLPFC_section_151673.ipynb:** applying spaVAE to the Human DLPFC section 151673 data, including latent representaion, clustering, and differential expression analysis.
 
-**Human_DLPFC_section_151673_impute.ipynb:** applying spaVAE for spatial imputation analysis.
+**Human_DLPFC_section_151673_interpolate.ipynb:** applying spaVAE for spatial interpolation analysis.
 
 **Human_DLPFC_section_151673_spaLDVAE.ipynb:** applying spaLDVAE for detecting top spatial and non-spatial genes.
 
