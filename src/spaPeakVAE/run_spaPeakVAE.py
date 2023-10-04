@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument('--maxiter', default=5000, type=int)
     parser.add_argument('--train_size', default=0.95, type=float)
     parser.add_argument('--patience', default=200, type=int)
-    parser.add_argument('--lr', default=1e-3, type=float)
+    parser.add_argument('--lr', default=1e-4, type=float)
     parser.add_argument('--weight_decay', default=1e-6, type=float)
     parser.add_argument('--noise', default=0, type=float)
     parser.add_argument('--dropoutE', default=0, type=float,
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser.add_argument('--dropoutD', default=0, type=float,
                         help='dropout probability for decoder')
     parser.add_argument('--encoder_layers', nargs="+", default=[1024, 128], type=int)
-    parser.add_argument('--GP_dim', default=4, type=int,help='dimension of the latent Gaussian process embedding')
+    parser.add_argument('--GP_dim', default=5, type=int,help='dimension of the latent Gaussian process embedding')
     parser.add_argument('--Normal_dim', default=8, type=int,help='dimension of the latent standard Gaussian embedding')
     parser.add_argument('--decoder_layers', nargs="+", default=[128, 1024], type=int)
     parser.add_argument('--init_beta', default=10, type=float, help='initial coefficient of the KL loss')
