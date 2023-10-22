@@ -6,7 +6,7 @@ The spaVAE model for spatially resolved transcriptomics (SRT).
 
 ## spaLDVAE
 
-The spaLDVAE (spaVAE with linear decoder) model for detecting spatial variable genes and peaks.
+The spaLDVAE (spaVAE with linear decoder) and spaPeakLDVAE models for detecting spatial variable genes and peaks.
 
 ## spaVAE_Batch
 
