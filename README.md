@@ -88,7 +88,7 @@ python run_spaMultiVAE.py --data_file Multiomics_Spatial_Human_tonsil_SVG_data.h
 **--dropoutE:** dropout probability for encoder, default = 0.<br/>
 **--dropoutD:** dropout probability for decoder, default = 0.<br/>
 **--encoder_layers:** hidden layer sizes of encoder, default = [128, 64].<br/>
-**--GP_dim:** dimension of the latent Gaussian process embedding, default = 2 for spaVAE and spaMultiVAE, and default = 8 for spaPeakVAE.<br/>
+**--GP_dim:** dimension of the latent Gaussian process embedding, default = 2 for spaVAE and spaMultiVAE, and default = 5 for spaPeakVAE.<br/>
 **--Normal_dim:** dimension of the latent standard Gaussian embedding, default = 8 for spaVAE and spaPeakVAE, and 18 for spaMultiVAE.<br/>
 **--decoder_layers:** hidden layer sizes of decoder, default = [128].<br/>
 **--init_beta:** initial coefficient of the KL loss, default = 10.<br/>
