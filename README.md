@@ -9,6 +9,7 @@ SpaVAE, spaPeakVAE, spaMultiVAE, and spaLDVAE are dependency-aware deep generati
 ## Table of contents
 - [Network diagram](#diagram)
 - [Requirements](#requirements)
+- [Folders](#folders)
 - [Usage](#usage)
 - [API documents](#api)
 - [Parameters](#parameters)
@@ -30,6 +31,11 @@ Scanpy: 1.9.1 (https://scanpy.readthedocs.io/en/stable)<br/>
 Numpy: 1.21.5 (https://numpy.org)<br/>
 Pandas: 1.4.2 (https://pandas.pydata.org)<br/>
 h5py: 3.6.0 (https://pypi.org/project/h5py)<br/>
+
+## <a name="folders"></a>Folders
+
+**[Tutorial](https://github.com/ttgump/spaVAE/tree/main/Tutorial)**: we provide Jupyter notebooks demonstrating the functionalities of the spaVAE models.<br/>
+**[src](https://github.com/ttgump/spaVAE/tree/main/src)**: source code of spaVAE models.<br/>
 
 ## <a name="usage"></a>Usage
 
