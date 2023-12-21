@@ -91,6 +91,7 @@ python run_spaMultiVAE.py --data_file Multiomics_Spatial_Human_tonsil_SVG_data.h
 **--GP_dim:** dimension of the latent Gaussian process embedding, default = 2 for spaVAE and spaMultiVAE, and default = 5 for spaPeakVAE.<br/>
 **--Normal_dim:** dimension of the latent standard Gaussian embedding, default = 8 for spaVAE and spaPeakVAE, and 18 for spaMultiVAE.<br/>
 **--decoder_layers:** hidden layer sizes of decoder, default = [128].<br/>
+**--dynamicVAE:** whether to use dynamicVAE to tune the value of beta, if setting to false, then beta is fixed to initial value.<br/>
 **--init_beta:** initial coefficient of the KL loss, default = 10.<br/>
 **--min_beta:** minimal coefficient of the KL loss, default = 4.<br/>
 **--max_beta:** maximal coefficient of the KL loss, default = 25. min_beta, max_beta, and KL_loss are used for dynamic VAE algorithm.<br/>

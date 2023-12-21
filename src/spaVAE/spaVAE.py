@@ -65,7 +65,7 @@ class EarlyStopping:
 class SPAVAE(nn.Module):
     def __init__(self, input_dim, GP_dim, Normal_dim, encoder_layers, decoder_layers, noise, encoder_dropout, decoder_dropout, 
                     fixed_inducing_points, initial_inducing_points, fixed_gp_params, kernel_scale, N_train, 
-                    KL_loss, init_beta, min_beta, max_beta, dtype, device):
+                    KL_loss, dynamicVAE, init_beta, min_beta, max_beta, dtype, device):
         super(SPAVAE, self).__init__()
         torch.set_default_dtype(dtype)
         self.svgp = SVGP(fixed_inducing_points=fixed_inducing_points, initial_inducing_points=initial_inducing_points,
@@ -73,6 +73,7 @@ class SPAVAE(nn.Module):
         self.input_dim = input_dim
         self.PID = PIDControl(Kp=0.01, Ki=-0.005, init_beta=init_beta, min_beta=min_beta, max_beta=max_beta)
         self.KL_loss = KL_loss          # expected KL loss value
+        self.dynamicVAE = dynamicVAE
         self.beta = init_beta           # beta controls the weight of reconstruction loss
         self.dtype = dtype
         self.GP_dim = GP_dim            # dimension of latent Gaussian process embedding
@@ -613,12 +614,13 @@ class SPAVAE(nn.Module):
 
                 num += x_batch.shape[0]
 
-                KL_val = (gp_KL_term.item() + gaussian_KL_term.item()) / x_batch.shape[0]
-                queue.append(KL_val)
-                avg_KL = np.mean(queue)
-                self.beta, _ = self.PID.pid(self.KL_loss*(self.GP_dim+self.Normal_dim), avg_KL)
-                if len(queue) >= 10:
-                    queue.popleft()
+                if self.dynamicVAE:
+                    KL_val = (gp_KL_term.item() + gaussian_KL_term.item()) / x_batch.shape[0]
+                    queue.append(KL_val)
+                    avg_KL = np.mean(queue)
+                    self.beta, _ = self.PID.pid(self.KL_loss*(self.GP_dim+self.Normal_dim), avg_KL)
+                    if len(queue) >= 10:
+                        queue.popleft()
 
 
             elbo_val = elbo_val/num

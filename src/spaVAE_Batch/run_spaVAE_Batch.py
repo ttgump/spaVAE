@@ -33,6 +33,8 @@ if __name__ == "__main__":
     parser.add_argument('--GP_dim', default=2, type=int,help='dimension of the latent Gaussian process embedding')
     parser.add_argument('--Normal_dim', default=8, type=int,help='dimension of the latent standard Gaussian embedding')
     parser.add_argument('--decoder_layers', nargs="+", default=[128], type=int)
+    parser.add_argument('--dynamicVAE', default=True, type=bool, 
+                        help='whether to use dynamicVAE to tune the value of beta, if setting to false, then beta is fixed to initial value')
     parser.add_argument('--init_beta', default=10, type=float, help='initial coefficient of the KL loss')
     parser.add_argument('--min_beta', default=4, type=float, help='minimal coefficient of the KL loss')
     parser.add_argument('--max_beta', default=25, type=float, help='maximal coefficient of the KL loss')
@@ -111,7 +113,8 @@ if __name__ == "__main__":
         noise=args.noise, encoder_dropout=args.dropoutE, decoder_dropout=args.dropoutD, shared_dispersion=args.shared_dispersion,
         fixed_inducing_points=args.fix_inducing_points, initial_inducing_points=initial_inducing_points, 
         fixed_gp_params=args.fixed_gp_params, kernel_scale=args.kernel_scale, allow_batch_kernel_scale=args.allow_batch_kernel_scale,
-        N_train=adata.n_obs, KL_loss=args.KL_loss, init_beta=args.init_beta, min_beta=args.min_beta, max_beta=args.max_beta, dtype=torch.float64, device=args.device)
+        N_train=adata.n_obs, KL_loss=args.KL_loss, dynamicVAE=args.dynamicVAE, init_beta=args.init_beta, min_beta=args.min_beta, max_beta=args.max_beta, 
+        dtype=torch.float64, device=args.device)
 
     print(str(model))
 

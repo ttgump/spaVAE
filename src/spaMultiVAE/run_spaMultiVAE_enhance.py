@@ -41,6 +41,8 @@ if __name__ == "__main__":
     parser.add_argument('--Normal_dim', default=18, type=int)
     parser.add_argument('--gene_decoder_layers', nargs="+", default=[128], type=int)
     parser.add_argument('--protein_decoder_layers', nargs="+", default=[128], type=int)
+    parser.add_argument('--dynamicVAE', default=True, type=bool, 
+                        help='whether to use dynamicVAE to tune the value of beta, if setting to false, then beta is fixed to initial value')
     parser.add_argument('--init_beta', default=10, type=float, help='initial coefficient of the KL loss')
     parser.add_argument('--min_beta', default=1, type=float, help='minimal coefficient of the KL loss')
     parser.add_argument('--max_beta', default=25, type=float, help='maximal coefficient of the KL loss')
@@ -146,9 +148,9 @@ if __name__ == "__main__":
         encoder_layers=args.encoder_layers, gene_decoder_layers=args.gene_decoder_layers, protein_decoder_layers=args.protein_decoder_layers,
         gene_noise=args.gene_noise, protein_noise=args.protein_noise, encoder_dropout=args.dropoutE, decoder_dropout=args.dropoutD,
         fixed_inducing_points=args.fix_inducing_points, initial_inducing_points=initial_inducing_points, 
-        fixed_gp_params=args.fixed_gp_params, kernel_scale=args.kernel_scale, N_train=adata1.n_obs, KL_loss=args.KL_loss, init_beta=args.init_beta, min_beta=args.min_beta, 
-        max_beta=args.max_beta, protein_back_mean=protein_log_back_mean, protein_back_scale=protein_log_back_scale, dtype=torch.float64, 
-        device=args.device)
+        fixed_gp_params=args.fixed_gp_params, kernel_scale=args.kernel_scale, N_train=adata1.n_obs, KL_loss=args.KL_loss, dynamicVAE=args.dynamicVAE,
+        init_beta=args.init_beta, min_beta=args.min_beta, max_beta=args.max_beta, protein_back_mean=protein_log_back_mean, protein_back_scale=protein_log_back_scale, 
+        dtype=torch.float64, device=args.device)
 
     print(str(model))
 
