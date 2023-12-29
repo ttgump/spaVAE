@@ -48,6 +48,8 @@ if __name__ == "__main__":
     parser.add_argument('--KL_loss', default=0.025, type=float, help='desired KL_divergence value')
     parser.add_argument('--num_samples', default=1, type=int)
     parser.add_argument('--fix_inducing_points', default=True, type=bool)
+    parser.add_argument('--grid_inducing_points', default=True, type=bool, 
+                        help='whether to generate grid inducing points or use k-means centroids on locations as inducing points')
     parser.add_argument('--inducing_point_steps', default=None, type=int)
     parser.add_argument('--inducing_point_nums', default=None, type=int)
     parser.add_argument('--fixed_gp_params', default=False, type=bool)
