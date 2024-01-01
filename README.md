@@ -80,7 +80,7 @@ python run_spaMultiVAE.py --data_file Multiomics_Spatial_Human_tonsil_SVG_data.h
 **--select_genes:** number of selected genes for analysis, default = 0 means no filtering.  It will use the mean-variance relationship to select informative genes.<br/>
 **--batch_size:** mini-batch size, default = "auto", which means if sample size <= 1024 then batch size = 128, if 1024 < sample size <= 2048 then batch size = 256, if sample size > 2048 then batch size = 512.<br/>
 **--maxiter:** number of max training iterations, default = 5000.<br/>
-**--train_size:** proportion of training set, others will be validating set, default = 0.95.<br/>
+**--train_size:** proportion of training set, others will be validating set, default = 0.95. In small datasets, e.g. there are only hundreds of spots, we recommend to set train_size to 1, and fix the maxiter to 1000.<br/>
 **--patience:** patience of early stopping when using validating set, default = 200.<br/>
 **--lr:** learning rate, default = 1e-3 for spaVAE and spaPeakVAE, and defualt = 5e-3 for spaMultiVAE.<br/>
 **--weight_decay:** weight decay coefficient, default = 1e-6.<br/>
